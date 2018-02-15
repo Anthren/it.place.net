@@ -2,6 +2,8 @@
     <string name="app_name">it.place.net</string>
     <string name="title_activity_login">Авторизация</string>
 
+    <string name="string_hello">Hello %s!</string>
+
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Пароль</string>
@@ -10,4 +12,9 @@
     <string name="action_sign_in_alert">Не все поля заполнены</string>
     <string name="action_sign_in">Войти</string>
     <string name="action_sign_out">Выйти</string>
+    <string name="error_invalid_email">Неверный email</string>
+    <string name="error_invalid_password">Пароль слишком короткий</string>
+    <string name="error_incorrect_password">Неверный пароль</string>
+    <string name="error_field_required">Поле обязательно для заполнения</string>
+    <string name="error_sign_in_failed">Ошибка входа</string>
 </resources>
