@@ -12,6 +12,11 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import kotlinx.android.synthetic.main.activity_login.*
+import android.widget.Toast
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.AuthResult
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.auth.FirebaseAuth
 
 
 class LoginActivity : AppCompatActivity() {
@@ -81,6 +86,7 @@ class LoginActivity : AppCompatActivity() {
             focusView?.requestFocus()
         } else {
             showProgress(true)
+            userSingIn(emailStr, passwordStr)
         }
     }
 
@@ -90,6 +96,21 @@ class LoginActivity : AppCompatActivity() {
 
     private fun isPasswordValid(password: String): Boolean {
         return password.length > 4
+    }
+
+    private fun userSingIn(email: String, password: String) {
+        val auth = FirebaseAuth.getInstance()
+        auth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, OnCompleteListener<AuthResult> { task ->
+                    if (task.isSuccessful) {
+                        // Sign in success
+                        gotoMain()
+                    } else {
+                        // If sign in fails
+                        Toast.makeText(this@LoginActivity, getString(R.string.error_sign_in_failed) + " " + task.getException(), Toast.LENGTH_LONG).show()
+                        showProgress(false)
+                    }
+                })
     }
 
     /**
