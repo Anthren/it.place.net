@@ -1,0 +1,98 @@
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimaryDark"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    tools:context="yuyu.itplacenet.LoginActivity">
+
+    <ImageView
+        android:id="@+id/image_owl_bg"
+        app:srcCompat="@drawable/img"
+        android:layout_width="280dp"
+        android:layout_height="200dp"
+        android:layout_marginEnd="@dimen/small_horizontal_margin"
+        android:layout_marginStart="@dimen/small_horizontal_margin"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="@+id/login_form"
+        app:layout_constraintStart_toStartOf="@+id/login_form"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ScrollView
+        android:id="@+id/login_form"
+        android:layout_width="312dp"
+        android:layout_height="312dp"
+        android:layout_marginEnd="@dimen/large_vertical_margin"
+        android:layout_marginStart="@dimen/large_vertical_margin"
+        android:layout_marginTop="184dp"
+        android:background="@color/colorContrast"
+        android:paddingBottom="@dimen/large_vertical_margin"
+        android:paddingLeft="@dimen/large_horizontal_margin"
+        android:paddingRight="@dimen/large_horizontal_margin"
+        android:paddingTop="@dimen/large_vertical_margin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/image_owl_bg">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <EditText
+                style="@style/EditText"
+                android:id="@+id/email"
+                android:hint="@string/prompt_email"
+                android:inputType="textEmailAddress"
+                android:layout_marginBottom="@dimen/large_vertical_margin" />
+
+            <EditText
+                style="@style/EditText"
+                android:id="@+id/password"
+                android:hint="@string/prompt_password"
+                android:inputType="textPassword"
+                android:layout_marginBottom="@dimen/large_vertical_margin" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="@dimen/large_vertical_margin" >
+
+                <Button
+                    android:id="@+id/registration_button"
+                    style="@style/Button.Link.Small"
+                    android:layout_alignParentStart="true"
+                    android:text="@string/prompt_registration" />
+
+                <Button
+                    android:id="@+id/forgot_password_button"
+                    style="@style/Button.Link.Small"
+                    android:layout_alignParentEnd="true"
+                    android:text="@string/prompt_forgot_password" />
+            </RelativeLayout>
+
+            <Button
+                style="@style/Button.Wide.Green"
+                android:id="@+id/email_sign_in_button"
+                android:text="@string/action_sign_in" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <ProgressBar
+        android:id="@+id/login_progress"
+        style="?android:attr/progressBarStyleLarge"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/large_horizontal_margin"
+        android:layout_marginEnd="@dimen/large_horizontal_margin"
+        android:layout_marginTop="@dimen/large_vertical_margin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/image_owl_bg" />
+
+</android.support.constraint.ConstraintLayout>

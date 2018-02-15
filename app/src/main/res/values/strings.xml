@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">it.place.net</string>
+    <string name="title_activity_login">Авторизация</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Пароль</string>
+    <string name="prompt_registration">Регистрация</string>
+    <string name="prompt_forgot_password">Забыли пароль?</string>
+    <string name="action_sign_in_alert">Не все поля заполнены</string>
+    <string name="action_sign_in">Войти</string>
+    <string name="action_sign_out">Выйти</string>
 </resources>
