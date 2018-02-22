@@ -19,7 +19,10 @@
         <activity
             android:name=".LoginActivity"
             android:label="@string/title_activity_login" />
-        <activity android:name=".RegistrationActivity"></activity>
+        <activity android:name=".RegistrationActivity" />
+        <activity
+            android:name=".ProfileEditActivity"
+            android:label="@string/title_activity_profile_edit" />
     </application>
 
 </manifest>

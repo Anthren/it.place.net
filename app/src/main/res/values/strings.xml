@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">it.place.net</string>
     <string name="title_activity_login">Авторизация</string>
+    <string name="title_activity_profile_edit">Редактировать профиль</string>
 
     <string name="string_hello">Hello %s!</string>
 
@@ -17,4 +18,12 @@
     <string name="error_incorrect_password">Неверный пароль</string>
     <string name="error_field_required">Поле обязательно для заполнения</string>
     <string name="error_sign_in_failed">Ошибка входа</string>
+
+    <!-- Strings related to profile -->
+    <string name="group_title_person">Личные данные</string>
+    <string name="group_title_password">Сменить пароль</string>
+    <string name="prompt_name">Имя</string>
+    <string name="prompt_phone">Телефон</string>
+    <string name="action_change_photo">Сменить фотографию</string>
+    <string name="action_save">Сохранить</string>
 </resources>

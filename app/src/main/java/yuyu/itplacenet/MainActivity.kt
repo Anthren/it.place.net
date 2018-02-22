@@ -21,15 +21,23 @@ class MainActivity : AppCompatActivity() {
             finish()
         }
 
-        hello_text.setText( getString( R.string.string_hello ).format( user.toString() ) )
+        hello_text.text = getString( R.string.string_hello ).format( user.toString() )
         logoff_button.setOnClickListener {
             auth.signOut()
             gotoLogin()
+            finish()
         }
+
+        gotoProfileEdit()
     }
 
     private fun gotoLogin() {
         startActivity( Intent(this@MainActivity, LoginActivity::class.java) )
     }
+
+    private fun gotoProfileEdit() {
+        startActivity( Intent(this@MainActivity, ProfileEditActivity::class.java) )
+    }
+
 
 }

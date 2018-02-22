@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorContrast"
+    tools:context="yuyu.itplacenet.ProfileEditActivity">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/profile_photo_bg"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/profile_photo_bg_height"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                android:scaleType="centerCrop"
+                app:srcCompat="@color/colorLight" />
+
+            <RelativeLayout
+                android:id="@+id/profile_description_form"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_marginTop="@dimen/profile_photo_size"
+                app:layout_constraintTop_toTopOf="@+id/profile_photo_bg">
+
+                <com.makeramen.roundedimageview.RoundedImageView
+                    xmlns:app="http://schemas.android.com/apk/res-auto"
+                    android:id="@+id/profile_photo"
+                    android:layout_width="@dimen/profile_photo_size"
+                    android:layout_height="@dimen/profile_photo_size"
+                    android:layout_alignParentTop="true"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="@dimen/small_margin"
+                    android:scaleType="centerCrop"
+                    app:riv_corner_radius="30dip"
+                    app:riv_mutate_background="true"
+                    app:riv_oval="true"
+                    app:riv_tile_mode="repeat" />
+
+                <TextView
+                    android:id="@+id/user_name_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/profile_photo"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="@dimen/small_margin"
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="@dimen/extra_large_text_size"
+                    tools:text="User Name" />
+
+                <Button
+                    android:id="@+id/change_photo_button"
+                    style="@style/Button.Link.Small"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/colorLight"
+                    android:layout_below="@+id/user_name_text"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="@dimen/extra_small_margin"
+                    android:text="@string/action_change_photo" />
+
+            </RelativeLayout>
+
+            <LinearLayout
+                android:id="@+id/profile_edit_form"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@+id/profile_description_form"
+                android:layout_margin="@dimen/large_margin"
+                android:padding="@dimen/large_margin"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/GroupTitle"
+                    android:text="@string/group_title_person"
+                    android:layout_marginBottom="@dimen/large_margin"/>
+
+                <TextView
+                    style="@style/Label"
+                    android:text="@string/prompt_name" />
+
+                <EditText
+                    style="@style/EditText.Large"
+                    android:id="@+id/user_name"
+                    android:inputType="textPersonName"
+                    android:layout_marginBottom="@dimen/extra_large_margin" />
+
+                <TextView
+                    style="@style/Label"
+                    android:text="@string/prompt_phone" />
+
+                <EditText
+                    style="@style/EditText.Large"
+                    android:id="@+id/user_phone"
+                    android:inputType="phone"
+                    android:layout_marginBottom="@dimen/extra_large_margin" />
+
+                <TextView
+                    style="@style/Label"
+                    android:text="@string/prompt_email" />
+
+                <EditText
+                    style="@style/EditText.Large"
+                    android:id="@+id/user_email"
+                    android:inputType="textEmailAddress"
+                    android:layout_marginBottom="@dimen/extra_large_margin" />
+
+                <Button
+                    android:id="@+id/save_button"
+                    style="@style/Button.Wide"
+                    android:layout_marginTop="@dimen/large_margin"
+                    android:text="@string/action_save" />
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+    </ScrollView>
+
+</android.support.constraint.ConstraintLayout>
