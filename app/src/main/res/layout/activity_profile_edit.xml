@@ -88,37 +88,53 @@
                     style="@style/Label"
                     android:text="@string/prompt_name" />
 
-                <EditText
-                    style="@style/EditText.Large"
-                    android:id="@+id/user_name"
-                    android:inputType="textPersonName"
-                    android:layout_marginBottom="@dimen/extra_large_margin" />
+                <android.support.design.widget.TextInputLayout
+                    android:id="@+id/user_name_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/extra_large_margin">
+                    <EditText
+                        style="@style/EditText.Large"
+                        android:id="@+id/user_name"
+                        android:inputType="textPersonName" />
+                </android.support.design.widget.TextInputLayout>
 
                 <TextView
                     style="@style/Label"
                     android:text="@string/prompt_phone" />
 
-                <EditText
-                    style="@style/EditText.Large"
-                    android:id="@+id/user_phone"
-                    android:inputType="phone"
-                    android:layout_marginBottom="@dimen/extra_large_margin" />
+                <android.support.design.widget.TextInputLayout
+                    android:id="@+id/user_phone_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/extra_large_margin">
+                    <EditText
+                        style="@style/EditText.Large"
+                        android:id="@+id/user_phone"
+                        android:inputType="phone" />
+                </android.support.design.widget.TextInputLayout>
 
                 <TextView
                     style="@style/Label"
                     android:text="@string/prompt_email" />
 
-                <EditText
-                    style="@style/EditText.Large"
-                    android:id="@+id/user_email"
-                    android:inputType="textEmailAddress"
-                    android:layout_marginBottom="@dimen/extra_large_margin" />
+                <android.support.design.widget.TextInputLayout
+                    android:id="@+id/user_email_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/extra_large_margin">
+                    <EditText
+                        style="@style/EditText.Large"
+                        android:id="@+id/user_email"
+                        android:inputType="textEmailAddress" />
+                </android.support.design.widget.TextInputLayout>
 
                 <Button
                     android:id="@+id/save_button"
                     style="@style/Button.Wide"
                     android:layout_marginTop="@dimen/large_margin"
-                    android:text="@string/action_save" />
+                    android:text="@string/action_save"
+                    android:enabled="false"/>
 
             </LinearLayout>
 
