@@ -26,4 +26,6 @@
     <string name="prompt_phone">Телефон</string>
     <string name="action_change_photo">Сменить фотографию</string>
     <string name="action_save">Сохранить</string>
+    <string name="note_save_done">Данные успешно сохранены</string>
+    <string name="error_save_failed">Ошибка при сохранении</string>
 </resources>

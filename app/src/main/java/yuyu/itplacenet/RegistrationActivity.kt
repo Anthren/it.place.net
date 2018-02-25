@@ -3,12 +3,13 @@ package yuyu.itplacenet
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Toast
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
 import com.google.firebase.auth.FirebaseAuth
+import yuyu.itplacenet.utils.*
 import java.util.*
 
+@Suppress("DEPRECATION")
 class RegistrationActivity : AppCompatActivity() {
 
     private val RC_SIGN_IN = 123
@@ -25,7 +26,7 @@ class RegistrationActivity : AppCompatActivity() {
                         .createSignInIntentBuilder()
                         .setAvailableProviders(providers)
                         .build(),
-                RC_SIGN_IN);
+                RC_SIGN_IN)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
@@ -39,12 +40,12 @@ class RegistrationActivity : AppCompatActivity() {
                 val user = FirebaseAuth.getInstance().currentUser
 
                 if( user != null ) {
-                    Toast.makeText(this, user.toString(), Toast.LENGTH_LONG ).show()
+                    message(this, user.toString() )
                     gotoMain()
                 }
             } else {
                 // Sign in failed, check response for error code
-                Toast.makeText(this, getString(R.string.error_sign_in_failed), Toast.LENGTH_LONG ).show()
+                message(this, getString(R.string.error_sign_in_failed))
                 gotoLogin()
             }
         }

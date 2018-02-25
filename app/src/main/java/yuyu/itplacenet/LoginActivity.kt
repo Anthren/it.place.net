@@ -12,11 +12,8 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import kotlinx.android.synthetic.main.activity_login.*
-import android.widget.Toast
-import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.AuthResult
-import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.auth.FirebaseAuth
+import yuyu.itplacenet.utils.*
 
 
 class LoginActivity : AppCompatActivity() {
@@ -63,7 +60,11 @@ class LoginActivity : AppCompatActivity() {
         var focusView: View? = null
 
         // Check for a valid password, if the user entered one.
-        if (!TextUtils.isEmpty(passwordStr) && !isPasswordValid(passwordStr)) {
+        if (TextUtils.isEmpty(passwordStr)) {
+            password.error = getString(R.string.error_field_required)
+            focusView = password
+            cancel = true
+        } else if (!TextUtils.isEmpty(passwordStr) && !isPasswordValid(passwordStr)) {
             password.error = getString(R.string.error_invalid_password)
             focusView = password
             cancel = true
@@ -90,24 +91,16 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun isEmailValid(email: String): Boolean {
-        return email.contains("@") && email.contains(".")
-    }
-
-    private fun isPasswordValid(password: String): Boolean {
-        return password.length > 4
-    }
-
     private fun userSingIn(email: String, password: String) {
         val auth = FirebaseAuth.getInstance()
         auth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, OnCompleteListener<AuthResult> { task ->
+                .addOnCompleteListener(this, { task ->
                     if (task.isSuccessful) {
                         // Sign in success
                         gotoMain()
                     } else {
                         // If sign in fails
-                        Toast.makeText(this@LoginActivity, getString(R.string.error_sign_in_failed) + " " + task.getException(), Toast.LENGTH_LONG).show()
+                        message(this@LoginActivity, getString(R.string.error_sign_in_failed) + " " + task.exception)
                         showProgress(false)
                     }
                 })

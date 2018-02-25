@@ -5,19 +5,26 @@ import android.os.Bundle
 import android.view.View
 import android.widget.EditText
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.activity_profile_edit.*
 import ru.tinkoff.decoro.MaskImpl
 import ru.tinkoff.decoro.slots.PredefinedSlots
 import ru.tinkoff.decoro.watchers.MaskFormatWatcher
 import android.text.Editable
 import android.text.TextWatcher
-
+import com.google.firebase.firestore.*
+import yuyu.itplacenet.utils.*
+import yuyu.itplacenet.models.*
 
 
 class ProfileEditActivity : AppCompatActivity() {
 
-    private var maySave = false;
+    private val currentUser = FirebaseAuth.getInstance().currentUser
+    private val db = FirebaseFirestore.getInstance()
+    private val dbUsers = "users"
+
+    private var userId = ""
+
+    private var maySave = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,15 +62,12 @@ class ProfileEditActivity : AppCompatActivity() {
     }
 
     private fun loadUserData() {
-        val auth = FirebaseAuth.getInstance()
-        val user = auth.currentUser
-
-        if (user != null) {
-            val userId = user.uid
-            val userName = user.displayName
-            val userPhone = user.phoneNumber
-            val userEmail = user.email
-            val userPhotoUrl = user.photoUrl
+        if (currentUser != null) {
+            userId = currentUser.uid
+            val userName = currentUser.displayName
+            val userPhone = currentUser.phoneNumber
+            val userEmail = currentUser.email
+            val userPhotoUrl = currentUser.photoUrl
 
             user_name_text.setText(userName)
             user_name.setText(userName)
@@ -80,11 +84,32 @@ class ProfileEditActivity : AppCompatActivity() {
         formatWatcher.installOn(phoneEditText)
     }
 
-    private fun saveChanges(): Boolean {
-        if( !validateAll() ) {
+    private fun saveChanges() {
+        if( validateAll() ) {
 
+            val user = User(user_name.text.toString(), user_phone.text.toString(), user_email.text.toString())
+
+            if( userId != "" ) {
+                db.collection(dbUsers).document(userId)
+                        .set(user, SetOptions.merge())
+                        .addOnSuccessListener({
+                            message(this@ProfileEditActivity, getString(R.string.note_save_done))
+                        })
+                        .addOnFailureListener({ e: Exception ->
+                            message(this@ProfileEditActivity, getString(R.string.error_save_failed) + " " + e)
+                        })
+            } else {
+                db.collection(dbUsers)
+                        .add(user)
+                        .addOnSuccessListener({documentReference: DocumentReference ->
+                            userId = documentReference.id
+                            message(this@ProfileEditActivity, getString(R.string.note_save_done)+" "+userId)
+                        })
+                        .addOnFailureListener({ e: Exception ->
+                            message(this@ProfileEditActivity, getString(R.string.error_save_failed) + " " + e)
+                        })
+            }
         }
-        return true
     }
 
     private fun validateAll(): Boolean {
@@ -129,7 +154,7 @@ class ProfileEditActivity : AppCompatActivity() {
     private fun validateEmail() : Boolean {
         var err = false
         var errStr = ""
-        var emailStr = user_email.text.toString()
+        val emailStr = user_email.text.toString()
 
         if( emailStr.isEmpty() ) {
             err = true
@@ -145,10 +170,6 @@ class ProfileEditActivity : AppCompatActivity() {
             return false
         }
         return true
-    }
-
-    private fun isEmailValid(email: String): Boolean {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 
     private fun checkIsSaveAvailable() {
