@@ -1,5 +1,7 @@
 package yuyu.itplacenet
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
@@ -60,6 +62,7 @@ class ProfileEditActivity : AppCompatActivity() {
     }
 
     private fun loadUserData() {
+        showProgress(true)
         if (currentUser != null) {
             userId = currentUser.uid
             userPhotoUrl = currentUser.photoUrl
@@ -72,10 +75,14 @@ class ProfileEditActivity : AppCompatActivity() {
                             false -> User(currentUser.displayName, currentUser.phoneNumber, currentUser.email)
                         }
                         updateProfileView(user)
+                        completeProcess(null)
                     })
                     .addOnFailureListener({ e: Exception ->
-                        message(this@ProfileEditActivity, getString(R.string.error_load_failed) + " " + e)
+                        completeProcess(getString(R.string.error_load_failed) + " " + e)
                     })
+        } else {
+            message(this@ProfileEditActivity, getString(R.string.error_load_failed))
+            showProgress(false)
         }
     }
 
@@ -95,28 +102,29 @@ class ProfileEditActivity : AppCompatActivity() {
     }
 
     private fun saveChanges() {
-        if( validateAll() ) {
+        if (validateAll()) {
+            showProgress(true)
 
             val user = User(user_name.text.toString(), user_phone.text.toString(), user_email.text.toString())
 
-            if( userId != "" ) {
+            if (userId != "") {
                 db.collection(dbUsers).document(userId)
                         .set(user, SetOptions.merge())
                         .addOnSuccessListener({
-                            message(this@ProfileEditActivity, getString(R.string.note_save_done))
+                            completeProcess(getString(R.string.note_save_done))
                         })
                         .addOnFailureListener({ e: Exception ->
-                            message(this@ProfileEditActivity, getString(R.string.error_save_failed) + " " + e)
+                            completeProcess(getString(R.string.error_save_failed) + " " + e)
                         })
             } else {
                 db.collection(dbUsers)
                         .add(user)
-                        .addOnSuccessListener({documentReference: DocumentReference ->
+                        .addOnSuccessListener({ documentReference: DocumentReference ->
                             userId = documentReference.id
-                            message(this@ProfileEditActivity, getString(R.string.note_save_done)+" "+userId)
+                            completeProcess(getString(R.string.note_save_done))
                         })
                         .addOnFailureListener({ e: Exception ->
-                            message(this@ProfileEditActivity, getString(R.string.error_save_failed) + " " + e)
+                            completeProcess(getString(R.string.error_save_failed) + " " + e)
                         })
             }
         }
@@ -191,4 +199,34 @@ class ProfileEditActivity : AppCompatActivity() {
         }
     }
 
+    private fun completeProcess( msgString: String? ) {
+        if( msgString != null ) {
+            message(this@ProfileEditActivity, msgString)
+        }
+        showProgress(false)
+    }
+
+    private fun showProgress(show: Boolean) {
+        val shortAnimTime = resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
+
+        profile_edit_form.visibility = if (show) View.GONE else View.VISIBLE
+        profile_edit_form.animate()
+                .setDuration(shortAnimTime)
+                .alpha((if (show) 0 else 1).toFloat())
+                .setListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        profile_edit_form.visibility = if (show) View.GONE else View.VISIBLE
+                    }
+                })
+
+        load_user_data_progress.visibility = if (show) View.VISIBLE else View.GONE
+        load_user_data_progress.animate()
+                .setDuration(shortAnimTime)
+                .alpha((if (show) 1 else 0).toFloat())
+                .setListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        load_user_data_progress.visibility = if (show) View.VISIBLE else View.GONE
+                    }
+                })
+    }
 }
