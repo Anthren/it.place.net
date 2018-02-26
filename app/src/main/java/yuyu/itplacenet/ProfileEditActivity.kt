@@ -2,21 +2,37 @@ package yuyu.itplacenet
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.MediaStore
+import android.support.v7.app.AppCompatActivity
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.MenuInflater
 import android.view.View
 import android.widget.EditText
+import android.widget.PopupMenu
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.android.synthetic.main.activity_profile_edit.*
 import ru.tinkoff.decoro.MaskImpl
 import ru.tinkoff.decoro.slots.PredefinedSlots
 import ru.tinkoff.decoro.watchers.MaskFormatWatcher
-import android.text.Editable
-import android.text.TextWatcher
-import com.google.firebase.firestore.*
-import yuyu.itplacenet.utils.*
-import yuyu.itplacenet.models.*
+import yuyu.itplacenet.models.User
+import yuyu.itplacenet.utils.isEmailValid
+import yuyu.itplacenet.utils.message
+import java.io.FileNotFoundException
+import java.io.InputStream
+import android.Manifest.permission.*
+import android.content.pm.PackageManager
+import android.os.Build
+import android.support.design.widget.Snackbar
 
 
 class ProfileEditActivity : AppCompatActivity() {
@@ -29,6 +45,9 @@ class ProfileEditActivity : AppCompatActivity() {
     private var userPhotoUrl: Uri? = Uri.EMPTY
 
     private var maySave = false
+
+    private val RC_LOAD_FROM_GALLERY = 111
+    private val RC_LOAD_FROM_CAMERA  = 112
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,6 +77,10 @@ class ProfileEditActivity : AppCompatActivity() {
 
         save_button.setOnClickListener {
             saveChanges()
+        }
+
+        change_photo_button.setOnClickListener{ v:View ->
+            showPopup(v)
         }
     }
 
@@ -228,5 +251,88 @@ class ProfileEditActivity : AppCompatActivity() {
                         load_user_data_progress.visibility = if (show) View.VISIBLE else View.GONE
                     }
                 })
+    }
+
+    private fun showPopup(v:View) {
+        val popup = PopupMenu( this, v )
+        val inflater : MenuInflater = popup.menuInflater
+        inflater.inflate(R.menu.user_photo_popupmenu, popup.menu)
+
+        popup.setOnMenuItemClickListener { item ->
+            when( item.itemId ) {
+                R.id.from_gallery -> {
+                    val photoPickerIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                    photoPickerIntent.type = "image/*"
+                    startActivityForResult(photoPickerIntent, RC_LOAD_FROM_GALLERY)
+                    true
+                }
+                R.id.from_camera -> {
+                    runCamera()
+                    true
+                }
+                else -> false
+            }
+        }
+
+        popup.show()
+    }
+
+    private fun runCamera() {
+        if( !mayUseCamera() ) return
+        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        startActivityForResult(cameraIntent, RC_LOAD_FROM_CAMERA)
+    }
+
+    private fun mayUseCamera(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return true
+        }
+        if (checkSelfPermission(CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            return true
+        }
+        if (shouldShowRequestPermissionRationale(CAMERA)) {
+            Snackbar.make(profile_photo, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
+                    .setAction(android.R.string.ok,
+                            { requestPermissions(arrayOf(CAMERA), RC_LOAD_FROM_CAMERA) })
+        } else {
+            requestPermissions(arrayOf(CAMERA), RC_LOAD_FROM_CAMERA)
+        }
+        return false
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>,
+                                            grantResults: IntArray) {
+        if (requestCode == RC_LOAD_FROM_CAMERA) {
+            if (grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                runCamera()
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == RC_LOAD_FROM_GALLERY) {
+            if (resultCode == RESULT_OK) {
+                try {
+                    val imageUri: Uri = data.data
+                    message(applicationContext, imageUri.toString())
+                    val imageStream: InputStream = contentResolver.openInputStream(imageUri)
+                    val imageBitmap: Bitmap = BitmapFactory.decodeStream(imageStream)
+                    profile_photo.setImageBitmap(imageBitmap)
+                } catch ( e: FileNotFoundException ) {
+                    e.printStackTrace()
+                }
+            }
+        } else if (requestCode == RC_LOAD_FROM_CAMERA) {
+            if (resultCode == RESULT_OK) {
+                try {
+                    val imageBitmap: Bitmap = data.extras.get("data") as Bitmap
+                    profile_photo.setImageBitmap(imageBitmap)
+                } catch ( e: FileNotFoundException ) {
+                    e.printStackTrace()
+                }
+            }
+        }
     }
 }

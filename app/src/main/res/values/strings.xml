@@ -30,4 +30,7 @@
     <string name="note_save_done">Данные успешно сохранены</string>
     <string name="error_save_failed">Ошибка при сохранении</string>
     <string name="error_load_failed">Ошибка загрузки данных</string>
+    <string name="popup_menu_item_gallery">Галерея</string>
+    <string name="popup_menu_item_camera">Камера</string>
+    <string name="permission_rationale">Необходимо разрешить использование камеры</string>
 </resources>

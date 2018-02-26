@@ -45,7 +45,7 @@
                     app:riv_corner_radius="30dip"
                     app:riv_mutate_background="true"
                     app:riv_oval="true"
-                    app:riv_tile_mode="repeat" />
+                    tools:background="@drawable/img" />
 
                 <TextView
                     android:id="@+id/user_name_text"
