@@ -2,8 +2,6 @@ package yuyu.itplacenet
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import com.firebase.ui.auth.AuthUI
-import java.util.*
 import com.google.firebase.auth.FirebaseAuth
 import android.content.Intent
 import kotlinx.android.synthetic.main.activity_main.*
@@ -16,19 +14,21 @@ class MainActivity : AppCompatActivity() {
 
         val auth = FirebaseAuth.getInstance()
         val user = auth.currentUser
+
         if (user == null) {
             gotoLogin()
-            finish()
         }
 
         hello_text.text = getString( R.string.string_hello ).format( user.toString() )
+
+        profile_edit_button.setOnClickListener {
+            gotoProfileEdit()
+        }
+
         logoff_button.setOnClickListener {
             auth.signOut()
             gotoLogin()
-            finish()
         }
-
-        gotoProfileEdit()
     }
 
     private fun gotoLogin() {
@@ -38,6 +38,5 @@ class MainActivity : AppCompatActivity() {
     private fun gotoProfileEdit() {
         startActivity( Intent(this@MainActivity, ProfileEditActivity::class.java) )
     }
-
 
 }
