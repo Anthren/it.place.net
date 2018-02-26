@@ -28,4 +28,5 @@
     <string name="action_save">Сохранить</string>
     <string name="note_save_done">Данные успешно сохранены</string>
     <string name="error_save_failed">Ошибка при сохранении</string>
+    <string name="error_load_failed">Ошибка загрузки данных</string>
 </resources>

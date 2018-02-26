@@ -1,5 +1,6 @@
 package yuyu.itplacenet
 
+import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -23,6 +24,7 @@ class ProfileEditActivity : AppCompatActivity() {
     private val dbUsers = "users"
 
     private var userId = ""
+    private var userPhotoUrl: Uri? = Uri.EMPTY
 
     private var maySave = false
 
@@ -34,22 +36,18 @@ class ProfileEditActivity : AppCompatActivity() {
         makePhoneMask(user_phone)
         checkIsSaveAvailable()
 
-        user_name.setOnFocusChangeListener { v, hasFocus ->
-            validateUserName()
-        }
         user_name.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable) {
+                validateUserName()
                 checkIsSaveAvailable()
             }
             override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
         })
 
-        user_email.setOnFocusChangeListener { v, hasFocus ->
-            validateEmail()
-        }
         user_email.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable) {
+                validateEmail()
                 checkIsSaveAvailable()
             }
             override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
@@ -64,17 +62,29 @@ class ProfileEditActivity : AppCompatActivity() {
     private fun loadUserData() {
         if (currentUser != null) {
             userId = currentUser.uid
-            val userName = currentUser.displayName
-            val userPhone = currentUser.phoneNumber
-            val userEmail = currentUser.email
-            val userPhotoUrl = currentUser.photoUrl
+            userPhotoUrl = currentUser.photoUrl
 
-            user_name_text.setText(userName)
-            user_name.setText(userName)
-            user_phone.setText(userPhone)
-            user_email.setText(userEmail)
-            profile_photo.setImageURI(userPhotoUrl)
+            db.collection(dbUsers).document(userId)
+                    .get()
+                    .addOnSuccessListener({ documentSnapshot: DocumentSnapshot ->
+                        val user:User = when( documentSnapshot.exists() ) {
+                            true  -> documentSnapshot.toObject(User::class.java)
+                            false -> User(currentUser.displayName, currentUser.phoneNumber, currentUser.email)
+                        }
+                        updateProfileView(user)
+                    })
+                    .addOnFailureListener({ e: Exception ->
+                        message(this@ProfileEditActivity, getString(R.string.error_load_failed) + " " + e)
+                    })
         }
+    }
+
+    private fun updateProfileView( user: User ) {
+        user_name_text.text = user.name
+        user_name.setText(user.name)
+        user_phone.setText(user.phone)
+        user_email.setText(user.email)
+        profile_photo.setImageURI(userPhotoUrl)
     }
 
     private fun makePhoneMask(phoneEditText: EditText) {
