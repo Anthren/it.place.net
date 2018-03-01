@@ -28,11 +28,21 @@ import yuyu.itplacenet.models.User
 import yuyu.itplacenet.utils.isEmailValid
 import yuyu.itplacenet.utils.message
 import java.io.FileNotFoundException
-import java.io.InputStream
 import android.Manifest.permission.*
+import android.annotation.SuppressLint
+import android.content.ContentValues
+import android.content.Context
 import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.os.Build
+import android.os.Environment
 import android.support.design.widget.Snackbar
+import android.support.v4.content.FileProvider
+import android.widget.ImageView
+import java.io.File
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 class ProfileEditActivity : AppCompatActivity() {
@@ -42,7 +52,7 @@ class ProfileEditActivity : AppCompatActivity() {
     private val dbUsers = "users"
 
     private var userId = ""
-    private var userPhotoUrl: Uri? = Uri.EMPTY
+    private var userPhotoUri: Uri? = Uri.EMPTY
 
     private var maySave = false
 
@@ -84,11 +94,13 @@ class ProfileEditActivity : AppCompatActivity() {
         }
     }
 
+    /* Загрузка данных */
+
     private fun loadUserData() {
         showProgress(true)
         if (currentUser != null) {
             userId = currentUser.uid
-            userPhotoUrl = currentUser.photoUrl
+            userPhotoUri = currentUser.photoUrl
 
             db.collection(dbUsers).document(userId)
                     .get()
@@ -114,7 +126,7 @@ class ProfileEditActivity : AppCompatActivity() {
         user_name.setText(user.name)
         user_phone.setText(user.phone)
         user_email.setText(user.email)
-        profile_photo.setImageURI(userPhotoUrl)
+        profile_photo.setImageURI(userPhotoUri)
     }
 
     private fun makePhoneMask(phoneEditText: EditText) {
@@ -123,6 +135,8 @@ class ProfileEditActivity : AppCompatActivity() {
         )
         formatWatcher.installOn(phoneEditText)
     }
+
+    /* Сохранение данных */
 
     private fun saveChanges() {
         if (validateAll()) {
@@ -222,6 +236,8 @@ class ProfileEditActivity : AppCompatActivity() {
         }
     }
 
+    /* Progress Bar */
+
     private fun completeProcess( msgString: String? ) {
         if( msgString != null ) {
             message(this@ProfileEditActivity, msgString)
@@ -253,6 +269,9 @@ class ProfileEditActivity : AppCompatActivity() {
                 })
     }
 
+    /* Фотография */
+
+    // Спрашиваем, что делать
     private fun showPopup(v:View) {
         val popup = PopupMenu( this, v )
         val inflater : MenuInflater = popup.menuInflater
@@ -277,25 +296,81 @@ class ProfileEditActivity : AppCompatActivity() {
         popup.show()
     }
 
+    // Запускаем камеру
     private fun runCamera() {
         if( !mayUseCamera() ) return
         val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        startActivityForResult(cameraIntent, RC_LOAD_FROM_CAMERA)
+        cameraIntent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+
+        if( isIntentAvailable(this, cameraIntent ) ) {
+            try {
+                val photoFile = createImageFile()
+                val photoURI = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID+".fileprovider", photoFile)
+                } else {
+                    Uri.fromFile(photoFile)
+                }
+                addImageToGallery(photoURI)
+                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+                userPhotoUri = photoURI
+                startActivityForResult(cameraIntent, RC_LOAD_FROM_CAMERA)
+            }
+            catch( e: Exception ) {
+                message(this, "Не получилось создать временный файл! " + e)
+            }
+        }
     }
 
+    // Проверяем, можно ли запустить камеру
+    private fun isIntentAvailable(context: Context, intent: Intent) : Boolean {
+        val packageManager = context.packageManager
+        val list: List<ResolveInfo> = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+        return list.isNotEmpty()
+    }
+
+
+    // Создаем временный файл
+    @SuppressLint("SimpleDateFormat")
+    @Throws(IOException::class)
+    private fun createImageFile(): File {
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+        val imageFileName = "JPEG_" + timeStamp + "_"
+        val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+        val image = File.createTempFile( imageFileName,".jpg", storageDir )
+        val currentPhotoPath = image.absolutePath
+
+        val values = ContentValues()
+        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+        values.put(MediaStore.MediaColumns.DATA, currentPhotoPath)
+        this.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+
+        return image
+    }
+
+    // Добавляем файл в галерею
+    private fun addImageToGallery(photoURI: Uri) {
+        val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)
+        mediaScanIntent.data = photoURI
+        this.sendBroadcast(mediaScanIntent)
+    }
+
+    // Запрашиваем разрешение
     private fun mayUseCamera(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             return true
         }
-        if (checkSelfPermission(CAMERA) == PackageManager.PERMISSION_GRANTED) {
+        if (checkSelfPermission(CAMERA) == PackageManager.PERMISSION_GRANTED &&
+            checkSelfPermission(WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED ) {
             return true
         }
-        if (shouldShowRequestPermissionRationale(CAMERA)) {
+        if (shouldShowRequestPermissionRationale(CAMERA) ||
+            shouldShowRequestPermissionRationale(WRITE_EXTERNAL_STORAGE)) {
             Snackbar.make(profile_photo, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
                     .setAction(android.R.string.ok,
-                            { requestPermissions(arrayOf(CAMERA), RC_LOAD_FROM_CAMERA) })
+                            { requestPermissions(arrayOf(CAMERA,WRITE_EXTERNAL_STORAGE), RC_LOAD_FROM_CAMERA) })
         } else {
-            requestPermissions(arrayOf(CAMERA), RC_LOAD_FROM_CAMERA)
+            requestPermissions(arrayOf(CAMERA,WRITE_EXTERNAL_STORAGE), RC_LOAD_FROM_CAMERA)
         }
         return false
     }
@@ -309,30 +384,72 @@ class ProfileEditActivity : AppCompatActivity() {
         }
     }
 
+    // Обрабатываем результат
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if (requestCode == RC_LOAD_FROM_GALLERY) {
-            if (resultCode == RESULT_OK) {
-                try {
-                    val imageUri: Uri = data.data
-                    message(applicationContext, imageUri.toString())
-                    val imageStream: InputStream = contentResolver.openInputStream(imageUri)
-                    val imageBitmap: Bitmap = BitmapFactory.decodeStream(imageStream)
-                    profile_photo.setImageBitmap(imageBitmap)
-                } catch ( e: FileNotFoundException ) {
-                    e.printStackTrace()
-                }
+        if (resultCode == RESULT_OK) {
+            when( requestCode ) {
+                RC_LOAD_FROM_GALLERY ->
+                    try {
+                        loadPhotoFromGallery(data)
+                    } catch (e: FileNotFoundException) {
+                        e.printStackTrace()
+                    }
+                RC_LOAD_FROM_CAMERA ->
+                    try {
+                        if (data.hasExtra("data")) {
+                            handleSmallCameraPhoto(data)
+                        } else {
+                            loadPhotoFromCamera()
+                        }
+                    } catch (e: FileNotFoundException) {
+                        e.printStackTrace()
+                    }
             }
-        } else if (requestCode == RC_LOAD_FROM_CAMERA) {
-            if (resultCode == RESULT_OK) {
-                try {
-                    val imageBitmap: Bitmap = data.extras.get("data") as Bitmap
-                    profile_photo.setImageBitmap(imageBitmap)
-                } catch ( e: FileNotFoundException ) {
-                    e.printStackTrace()
-                }
-            }
+        }
+    }
+
+    // Загружаем картинку из галереи
+    private fun loadPhotoFromGallery(intent: Intent) {
+        val imageUri: Uri = intent.data
+        setUserPhoto( profile_photo, imageUri )
+        setUserPhoto( profile_photo_bg, imageUri )
+    }
+
+    // Загружаем миниатюру с камеры
+    private fun handleSmallCameraPhoto(intent: Intent) {
+        val imageBitmap = intent.getParcelableExtra<Bitmap>("data")
+        profile_photo.setImageBitmap(imageBitmap)
+        profile_photo_bg.setImageBitmap(imageBitmap)
+    }
+
+    // Загружаем фото с камеры
+    private fun loadPhotoFromCamera() {
+        setUserPhoto( profile_photo, userPhotoUri )
+        setUserPhoto( profile_photo_bg, userPhotoUri )
+    }
+
+    // Устанавливаем сжатую картинку в профиль
+    private fun setUserPhoto(imageView: ImageView, imageUri: Uri? ) {
+        if( imageUri != null ) {
+            val imageStream = contentResolver.openInputStream(imageUri)
+
+            val bmOptions = BitmapFactory.Options()
+            bmOptions.inJustDecodeBounds = true
+            BitmapFactory.decodeStream(imageStream)
+            val photoW = bmOptions.outWidth
+            val photoH = bmOptions.outHeight
+
+            val targetW: Int = imageView.width
+            val targetH = imageView.height
+            val scaleFactor = Math.min(photoW / targetW, photoH / targetH)
+
+            // Decode the image file into a Bitmap sized to fill the View
+            bmOptions.inJustDecodeBounds = false
+            bmOptions.inSampleSize = scaleFactor
+            val imageBitmap = BitmapFactory.decodeStream(imageStream, null, bmOptions)
+            imageView.setImageBitmap(imageBitmap)
         }
     }
 }
