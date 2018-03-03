@@ -24,9 +24,6 @@ import kotlinx.android.synthetic.main.activity_profile_edit.*
 import ru.tinkoff.decoro.MaskImpl
 import ru.tinkoff.decoro.slots.PredefinedSlots
 import ru.tinkoff.decoro.watchers.MaskFormatWatcher
-import yuyu.itplacenet.models.User
-import yuyu.itplacenet.utils.isEmailValid
-import yuyu.itplacenet.utils.message
 import java.io.FileNotFoundException
 import android.Manifest.permission.*
 import android.annotation.SuppressLint
@@ -43,6 +40,9 @@ import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
+import yuyu.itplacenet.helpers.UserHelper
+import yuyu.itplacenet.models.User
+import yuyu.itplacenet.utils.*
 
 
 class ProfileEditActivity : AppCompatActivity() {
@@ -55,9 +55,6 @@ class ProfileEditActivity : AppCompatActivity() {
     private var userPhotoUri: Uri? = Uri.EMPTY
 
     private var maySave = false
-
-    private val RC_LOAD_FROM_GALLERY = 111
-    private val RC_LOAD_FROM_CAMERA  = 112
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -116,7 +113,7 @@ class ProfileEditActivity : AppCompatActivity() {
                         completeProcess(getString(R.string.error_load_failed) + " " + e)
                     })
         } else {
-            message(this@ProfileEditActivity, getString(R.string.error_load_failed))
+            toast(getString(R.string.error_load_failed))
             showProgress(false)
         }
     }
@@ -214,7 +211,7 @@ class ProfileEditActivity : AppCompatActivity() {
         if( emailStr.isEmpty() ) {
             err = true
             errStr = getString(R.string.error_field_required)
-        } else if (!isEmailValid(emailStr)) {
+        } else if (!UserHelper().isEmailValid(emailStr)) {
             err = true
             errStr = getString(R.string.error_invalid_email)
         }
@@ -240,7 +237,7 @@ class ProfileEditActivity : AppCompatActivity() {
 
     private fun completeProcess( msgString: String? ) {
         if( msgString != null ) {
-            message(this@ProfileEditActivity, msgString)
+            toast(msgString)
         }
         showProgress(false)
     }
@@ -316,7 +313,7 @@ class ProfileEditActivity : AppCompatActivity() {
                 startActivityForResult(cameraIntent, RC_LOAD_FROM_CAMERA)
             }
             catch( e: Exception ) {
-                message(this, "Не получилось создать временный файл! " + e)
+                toast("Не получилось создать временный файл! " + e)
             }
         }
     }

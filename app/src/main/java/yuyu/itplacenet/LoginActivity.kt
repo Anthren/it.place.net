@@ -1,19 +1,17 @@
 package yuyu.itplacenet
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
-import android.annotation.TargetApi
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.content.Intent
-import android.os.Build
 import android.text.TextUtils
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
-import kotlinx.android.synthetic.main.activity_login.*
-import com.google.firebase.auth.FirebaseAuth
 import yuyu.itplacenet.utils.*
+import yuyu.itplacenet.managers.AuthManager
+import yuyu.itplacenet.helpers.UserHelper
+import yuyu.itplacenet.ui.ProgressBar
+import kotlinx.android.synthetic.main.activity_login.*
 
 
 class LoginActivity : AppCompatActivity() {
@@ -39,20 +37,13 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun gotoMain() {
-        startActivity( Intent(this@LoginActivity, MainActivity::class.java) )
-    }
-
-    private fun gotoRegistration() {
-        startActivity( Intent(this@LoginActivity, RegistrationActivity::class.java) )
-    }
+    /* Логин */
 
     private fun attemptLogin() {
         // Reset errors.
         email.error = null
         password.error = null
 
-        // Store values at the time of the login attempt.
         val emailStr = email.text.toString()
         val passwordStr = password.text.toString()
 
@@ -64,7 +55,7 @@ class LoginActivity : AppCompatActivity() {
             password.error = getString(R.string.error_field_required)
             focusView = password
             cancel = true
-        } else if (!TextUtils.isEmpty(passwordStr) && !isPasswordValid(passwordStr)) {
+        } else if (!TextUtils.isEmpty(passwordStr) && !UserHelper().isPasswordValid(passwordStr)) {
             password.error = getString(R.string.error_invalid_password)
             focusView = password
             cancel = true
@@ -75,73 +66,61 @@ class LoginActivity : AppCompatActivity() {
             email.error = getString(R.string.error_field_required)
             focusView = email
             cancel = true
-        } else if (!isEmailValid(emailStr)) {
+        } else if (!UserHelper().isEmailValid(emailStr)) {
             email.error = getString(R.string.error_invalid_email)
             focusView = email
             cancel = true
         }
 
         if (cancel) {
-            // There was an error; don't attempt login and focus the first
-            // form field with an error.
             focusView?.requestFocus()
         } else {
-            showProgress(true)
             userSingIn(emailStr, passwordStr)
         }
     }
 
     private fun userSingIn(email: String, password: String) {
-        val auth = FirebaseAuth.getInstance()
+        val answerIntent = Intent()
+        val auth = AuthManager()
+        val progressBar = ProgressBar(login_form, login_progress)
+
+        progressBar.show()
         auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, { task ->
                     if (task.isSuccessful) {
-                        // Sign in success
-                        gotoMain()
+                        setResult(RESULT_OK, answerIntent)
+                        finish()
                     } else {
-                        // If sign in fails
-                        message(this@LoginActivity, getString(R.string.error_sign_in_failed) + " " + task.exception)
-                        showProgress(false)
+                        toast("${getString(R.string.error_sign_in_failed)} ${task.exception}")
+                        // не работает, хз почему, разобраться
+                        //progressBar.hide()
+                        // пока поступим так
+                        setResult(RESULT_CANCELED, answerIntent)
+                        finish()
                     }
                 })
     }
 
-    /**
-     * Shows the progress UI and hides the login form.
-     */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-    private fun showProgress(show: Boolean) {
-        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-        // for very easy animations. If available, use these APIs to fade-in
-        // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            val shortAnimTime = resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
+    /* Регистрация */
 
-            login_form.visibility = if (show) View.GONE else View.VISIBLE
-            login_form.animate()
-                    .setDuration(shortAnimTime)
-                    .alpha((if (show) 0 else 1).toFloat())
-                    .setListener(object : AnimatorListenerAdapter() {
-                        override fun onAnimationEnd(animation: Animator) {
-                            login_form.visibility = if (show) View.GONE else View.VISIBLE
-                        }
-                    })
+    private fun gotoRegistration() {
+        startActivityForResult( AuthManager().getRegistrationIntent(), RC_SIGN_IN )
+    }
 
-            login_progress.visibility = if (show) View.VISIBLE else View.GONE
-            login_progress.animate()
-                    .setDuration(shortAnimTime)
-                    .alpha((if (show) 1 else 0).toFloat())
-                    .setListener(object : AnimatorListenerAdapter() {
-                        override fun onAnimationEnd(animation: Animator) {
-                            login_progress.visibility = if (show) View.VISIBLE else View.GONE
-                        }
-                    })
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            login_progress.visibility = if (show) View.VISIBLE else View.GONE
-            login_form.visibility = if (show) View.GONE else View.VISIBLE
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == RC_SIGN_IN) {
+            if (resultCode == RESULT_OK) {
+                gotoMain()
+            } else {
+                toast(getString(R.string.error_sign_in_failed))
+            }
         }
+    }
+
+    private fun gotoMain() {
+        startActivity( Intent(this, MainActivity::class.java) )
     }
 
 }
