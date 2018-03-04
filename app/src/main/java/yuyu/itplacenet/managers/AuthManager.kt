@@ -36,6 +36,7 @@ class AuthManager {
         return sign
     }
 
+    // в классах такого типа лучше не использовать android-зависимости
     fun getRegistrationIntent() : Intent {
         val providers = Arrays.asList(
                 AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build())

@@ -17,6 +17,7 @@ class MainActivity : AppCompatActivity() {
 
         if( !auth.isLogin() ) {
             gotoLogin()
+            // return
         }
 
         setHelloStr()

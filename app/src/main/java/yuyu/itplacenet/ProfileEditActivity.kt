@@ -99,6 +99,7 @@ class ProfileEditActivity : AppCompatActivity() {
             userId = currentUser.uid
             userPhotoUri = currentUser.photoUrl
 
+            // такую логику нужно где-то инкапсулировать не в activity
             db.collection(dbUsers).document(userId)
                     .get()
                     .addOnSuccessListener({ documentSnapshot: DocumentSnapshot ->
@@ -325,7 +326,7 @@ class ProfileEditActivity : AppCompatActivity() {
         return list.isNotEmpty()
     }
 
-
+    // Это нужно куда-то вынести
     // Создаем временный файл
     @SuppressLint("SimpleDateFormat")
     @Throws(IOException::class)

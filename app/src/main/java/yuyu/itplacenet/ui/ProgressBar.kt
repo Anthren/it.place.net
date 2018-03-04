@@ -41,6 +41,11 @@ class ProgressBar(private val form: View, private val progress: View) {
                 })
     }
 
+    // можно написать extension-функциию для любого типа вью, например
+    //    fun View.show() {
+    //        visibility = View.VISIBLE
+    //    }
+
     private fun setFormVisibility(show: Boolean) {
         form.visibility = if (show) View.GONE else View.VISIBLE
     }
