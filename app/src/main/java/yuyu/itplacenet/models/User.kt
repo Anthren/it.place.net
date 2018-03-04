@@ -1,5 +1,6 @@
 package yuyu.itplacenet.models
 
+// можно из этого сделать датакласс и поля сделать неопциональными
 class User() {
 
     var name = ""
