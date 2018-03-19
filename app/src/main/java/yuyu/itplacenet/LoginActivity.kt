@@ -1,20 +1,23 @@
 package yuyu.itplacenet
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.content.Intent
-import android.text.TextUtils
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import yuyu.itplacenet.utils.*
 import yuyu.itplacenet.managers.AuthManager
-import yuyu.itplacenet.helpers.UserHelper
 import yuyu.itplacenet.ui.ProgressBar
+import yuyu.itplacenet.ui.Validator
 import kotlinx.android.synthetic.main.activity_login.*
 
 
 class LoginActivity : AppCompatActivity() {
+
+    private val validator = Validator(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,42 +43,12 @@ class LoginActivity : AppCompatActivity() {
     /* Логин */
 
     private fun attemptLogin() {
-        // Reset errors.
-        email.error = null
-        password.error = null
-
-        val emailStr = email.text.toString()
-        val passwordStr = password.text.toString()
-
-        var cancel = false
-        var focusView: View? = null
-
-        // Check for a valid password, if the user entered one.
-        if (TextUtils.isEmpty(passwordStr)) {
-            password.error = getString(R.string.error_field_required)
-            focusView = password
-            cancel = true
-        } else if (!TextUtils.isEmpty(passwordStr) && !UserHelper().isPasswordValid(passwordStr)) {
-            password.error = getString(R.string.error_invalid_password)
-            focusView = password
-            cancel = true
-        }
-
-        // Check for a valid email address.
-        if (TextUtils.isEmpty(emailStr)) {
-            email.error = getString(R.string.error_field_required)
-            focusView = email
-            cancel = true
-        } else if (!UserHelper().isEmailValid(emailStr)) {
-            email.error = getString(R.string.error_invalid_email)
-            focusView = email
-            cancel = true
-        }
-
-        if (cancel) {
-            focusView?.requestFocus()
-        } else {
-            userSingIn(emailStr, passwordStr)
+        val fields = mapOf(
+                "password" to password,
+                "email" to email
+        )
+        if( validator.validate(fields) ) {
+            userSingIn(email.str(), password.str())
         }
     }
 
@@ -91,25 +64,48 @@ class LoginActivity : AppCompatActivity() {
                         setResult(RESULT_OK, answerIntent)
                         finish()
                     } else {
-                        toast("${getString(R.string.error_sign_in_failed)} ${task.exception}")
-                        // не работает, хз почему, разобраться
-                        //progressBar.hide()
-                        // пока поступим так
-                        setResult(RESULT_CANCELED, answerIntent)
-                        finish()
+                        toast("${getString(R.string.error_sign_in_failed)}: ${task.exception}")
+                        progressBar.hide() // не работает, хз почему
+                        hide() // так работает
                     }
                 })
+    }
+
+    private fun toggleProgress(show: Boolean) {
+        val shortAnimTime = resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
+
+        login_form.visibility = if (show) View.GONE else View.VISIBLE
+        login_form.animate()
+                .setDuration(shortAnimTime)
+                .alpha((if (show) 0 else 1).toFloat())
+                .setListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        login_form.visibility = if (show) View.GONE else View.VISIBLE
+                    }
+                })
+
+        login_progress.visibility = if (show) View.VISIBLE else View.GONE
+        login_progress.animate()
+                .setDuration(shortAnimTime)
+                .alpha((if (show) 1 else 0).toFloat())
+                .setListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        login_progress.visibility = if (show) View.VISIBLE else View.GONE
+                    }
+                })
+    }
+    private fun hide() {
+        toggleProgress(false)
     }
 
     /* Регистрация */
 
     private fun gotoRegistration() {
-        startActivityForResult( AuthManager().getRegistrationIntent(), RC_SIGN_IN )
+        startActivityForResult( AuthManager().makeRegistrationIntentBuilder().build(), RC_SIGN_IN )
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
         super.onActivityResult(requestCode, resultCode, data)
-
         if (requestCode == RC_SIGN_IN) {
             if (resultCode == RESULT_OK) {
                 gotoMain()

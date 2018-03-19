@@ -7,6 +7,7 @@
     <string name="action_profile_edit">Редактировать профиль</string>
 
     <!-- Strings related to login -->
+    <string name="image_owl_content_description">Картинка с совой</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Пароль</string>
     <string name="prompt_registration">Регистрация</string>
@@ -33,4 +34,5 @@
     <string name="popup_menu_item_gallery">Галерея</string>
     <string name="popup_menu_item_camera">Камера</string>
     <string name="permission_rationale">Необходимо дать приложению доступ к использованию камеры</string>
+    <string name="error_create_temp_file">Не получилось создать временный файл!</string>
 </resources>

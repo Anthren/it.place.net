@@ -7,6 +7,8 @@ import yuyu.itplacenet.managers.AuthManager
 import yuyu.itplacenet.utils.*
 import kotlinx.android.synthetic.main.activity_main.*
 
+
+
 class MainActivity : AppCompatActivity() {
 
     private val auth = AuthManager()
@@ -15,10 +17,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        if( !auth.isLogin() ) {
+        if( !auth.isLogin ) {
             gotoLogin()
-            // return
+            return
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
 
         setHelloStr()
 
@@ -37,15 +43,12 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == RC_LOG_IN) {
             if (resultCode == RESULT_OK) {
                 setHelloStr()
-            } else {
-                // починить progress bar!
-                gotoLogin()
             }
         }
     }
 
     private fun setHelloStr() {
-        hello_text.text = getString( R.string.string_hello ).format( auth.getCurrentUser().name )
+        hello_text.text = getString( R.string.string_hello, auth.user.name )
     }
 
     private fun gotoLogin() {

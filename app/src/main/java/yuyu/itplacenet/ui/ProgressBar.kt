@@ -6,7 +6,19 @@ import android.annotation.TargetApi
 import android.os.Build
 import android.view.View
 
-class ProgressBar(private val form: View, private val progress: View) {
+class ProgressBar() {
+
+    private var form: View? = null
+    private var progress: View? = null
+
+    constructor(form: View, progress: View) : this() {
+        setFields(form, progress)
+    }
+
+    fun setFields(form: View, progress: View) {
+        this.form = form
+        this.progress = progress
+    }
 
     fun show() {
         toggleProgress(true)

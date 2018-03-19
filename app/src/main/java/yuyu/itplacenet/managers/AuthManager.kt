@@ -1,6 +1,5 @@
 package yuyu.itplacenet.managers
 
-import android.content.Intent
 import com.firebase.ui.auth.AuthUI
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
@@ -12,43 +11,41 @@ import yuyu.itplacenet.models.User
 class AuthManager {
 
     private val auth = FirebaseAuth.getInstance()
-    private var user = User()
 
-    private fun refresh() {
-        this.user = this.getCurrentUser()
-    }
+    var user = User()
+        get() = getCurrentUser()
+        private set
 
-    fun isLogin() : Boolean {
-        return this.auth.uid != null
-    }
+    val userId: String?
+        get() = this.auth.uid
 
-    fun getCurrentUser() : User {
-        val curUser = this.auth.currentUser
-        return if( curUser != null )
-            User(curUser.displayName, curUser.phoneNumber, curUser.email)
-        else
-            User()
-    }
+    val isLogin: Boolean
+        get() = this.auth.uid != null
+
 
     fun signInWithEmailAndPassword( email: String, password: String ) : Task<AuthResult> {
-        val sign = this.auth.signInWithEmailAndPassword(email, password)
-        refresh()
-        return sign
+        return this.auth.signInWithEmailAndPassword(email, password)
     }
 
-    // в классах такого типа лучше не использовать android-зависимости
-    fun getRegistrationIntent() : Intent {
+    fun makeRegistrationIntentBuilder() : AuthUI.SignInIntentBuilder {
         val providers = Arrays.asList(
-                AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build())
-
+                AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build()
+        )
         return AuthUI.getInstance()
-                        .createSignInIntentBuilder()
-                        .setAvailableProviders(providers)
-                        .build()
+                     .createSignInIntentBuilder()
+                     .setAvailableProviders(providers)
     }
 
     fun logOut() {
         this.auth.signOut()
-        refresh()
+    }
+
+
+    private fun getCurrentUser() : User {
+        val curUser = this.auth.currentUser
+        return when (curUser) {
+            null -> User()
+            else -> User(name=curUser.displayName, email=curUser.email, phone=curUser.phoneNumber, photo=curUser.photoUrl.toString())
+        }
     }
 }
