@@ -16,6 +16,7 @@ import android.graphics.Bitmap
 import android.os.Build
 import android.support.design.widget.Snackbar
 import android.widget.PopupMenu
+import com.theartofdev.edmodo.cropper.CropImage
 import java.io.FileNotFoundException
 import yuyu.itplacenet.helpers.ImageHelper
 import yuyu.itplacenet.managers.AuthManager
@@ -25,7 +26,6 @@ import yuyu.itplacenet.ui.ProgressBar
 import yuyu.itplacenet.ui.Validator
 import yuyu.itplacenet.utils.*
 import kotlinx.android.synthetic.main.activity_profile_edit.*
-
 
 
 class ProfileEditActivity : AppCompatActivity() {
@@ -228,11 +228,11 @@ class ProfileEditActivity : AppCompatActivity() {
                 val photoURI = imageHelper.createImageFile()
                 cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
                 user.photo = photoURI.toString()
-                startActivityForResult(cameraIntent, RC_LOAD_FROM_CAMERA)
             }
             catch( e: Exception ) {
                 toast(getString(R.string.error_create_temp_file) + " " + e)
             }
+            startActivityForResult(cameraIntent, RC_LOAD_FROM_CAMERA)
         }
     }
 
@@ -274,8 +274,8 @@ class ProfileEditActivity : AppCompatActivity() {
             when( requestCode ) {
                 RC_LOAD_FROM_GALLERY ->
                     try {
-                        val photo = imageHelper.loadPhotoFromGallery(data)
-                        setUserPhoto( photo )
+                        val photoUri = imageHelper.loadPhotoFromGallery(data)
+                        performCrop( photoUri )
                     } catch (e: FileNotFoundException) {
                         e.printStackTrace()
                     }
@@ -285,14 +285,28 @@ class ProfileEditActivity : AppCompatActivity() {
                             val photo = imageHelper.loadSmallCameraPhoto(data)
                             setUserPhoto( photo )
                         } else if( user.photo != null ) {
-                            val photo = imageHelper.loadPhotoFromCamera(user.photo!!)
-                            setUserPhoto(photo)
+                            val photoUri = imageHelper.loadPhotoFromCamera(user.photo!!)
+                            performCrop( photoUri )
                         }
                     } catch (e: FileNotFoundException) {
                         e.printStackTrace()
                     }
             }
         }
+
+        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+            val result = CropImage.getActivityResult(data)
+            if (resultCode == RESULT_OK) {
+                setUserPhoto( result.uri )
+            } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
+                toast(result.error.toString())
+            }
+        }
+    }
+
+    // Кадрирование
+    private fun performCrop(imageUri: Uri) {
+        CropImage.activity(imageUri).start(this)
     }
 
     // Устанавливаем сжатую картинку в профиль
