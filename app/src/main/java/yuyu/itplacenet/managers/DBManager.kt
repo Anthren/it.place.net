@@ -31,6 +31,10 @@ class DBManager {
         return db.collection(dbUsers).add(user)
     }
 
+    fun updateUserData( userId: String, key: String, value: Any ) : Task<Void> {
+        return db.collection(dbUsers).document(userId).update(key, value)
+    }
+
     fun getResultId( documentReference: DocumentReference ) : String {
         return documentReference.id
     }

@@ -96,6 +96,19 @@ class ImageHelper(private val context: Context) {
     }
 
     // Сжимаем картинку под размер поля
+
+    fun scale(imageView: ImageView, imageUri: Uri?, imageBitmap: Bitmap? = null) : Bitmap? {
+        var photoBitmap: Bitmap? = null
+
+        if( imageUri != null ) {
+            photoBitmap = scaleImage(imageView, imageUri)
+        } else if( imageBitmap != null ) {
+            photoBitmap = scaleBitmap(imageView, imageBitmap)
+        }
+
+        return photoBitmap
+    }
+
     fun scaleImage(imageView: ImageView, imageUri: Uri) : Bitmap {
         val bmOptions = BitmapFactory.Options()
 
@@ -144,16 +157,16 @@ class ImageHelper(private val context: Context) {
     }
 
     // Кодировка
-    @Throws(UnsupportedEncodingException::class)
-    fun encrypt(d: String): String {
-        val data = d.toByteArray(charset("UTF-8"))
-        return Base64.encodeToString(data, Base64.DEFAULT)
+    fun bitmapToBase64(bitmap: Bitmap): String {
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+        val byteArray = byteArrayOutputStream.toByteArray()
+        return Base64.encodeToString(byteArray, Base64.DEFAULT)
     }
 
-    @Throws(UnsupportedEncodingException::class)
-    fun decryt(d: String): String {
-        val data = Base64.decode(d, Base64.DEFAULT)
-        return String(data, charset("UTF-8"))
+    fun base64ToBitmap(b64: String): Bitmap {
+        val imageAsBytes = Base64.decode(b64.toByteArray(), Base64.DEFAULT)
+        return BitmapFactory.decodeByteArray(imageAsBytes, 0, imageAsBytes.size)
     }
 
 }

@@ -85,6 +85,7 @@ class ProfileEditActivity : AppCompatActivity() {
                     .addOnSuccessListener({
                         user = db.parseUserData(it)
                         updateProfileView(user)
+                        updateUserPhotoView(user)
                         completeProcess(null)
                     })
                     .addOnFailureListener({ e: Exception ->
@@ -100,7 +101,14 @@ class ProfileEditActivity : AppCompatActivity() {
         user_name.setText(user.name)
         user_phone.setText(user.phone)
         user_email.setText(user.email)
-        profile_photo.setImageURI(Uri.parse(user.photo))
+    }
+
+    private fun updateUserPhotoView( user: User ) {
+        val photo = user.photo
+        if( photo != null && photo != "" ) {
+            val photoBitmap = imageHelper.base64ToBitmap(photo)
+            setUserPhotoToView(photoBitmap)
+        }
     }
 
     /* Сохранение данных */
@@ -316,20 +324,36 @@ class ProfileEditActivity : AppCompatActivity() {
 
     // Устанавливаем сжатую картинку в профиль
     private fun setUserPhoto(imageUri: Uri?, imageBitmap: Bitmap? = null) {
-        var photoBitmap: Bitmap? = null
-
-        if( imageUri != null ) {
-            photoBitmap = imageHelper.scaleImage(profile_photo, imageUri)
-        } else if( imageBitmap != null ) {
-            photoBitmap = imageHelper.scaleBitmap(profile_photo, imageBitmap)
-        }
+        val photoBitmap = imageHelper.scale(profile_photo, imageUri, imageBitmap)
 
         if( photoBitmap != null ) {
-            profile_photo.setImageBitmap( photoBitmap )
-            profile_photo_bg.setImageBitmap( imageHelper.blurImage(photoBitmap) )
+            setUserPhotoToView(photoBitmap)
+            saveUserPhotoToDB(photoBitmap)
         }
     }
     private fun setUserPhoto(imageBitmap: Bitmap) {
         return setUserPhoto(null, imageBitmap)
+    }
+
+    private fun setUserPhotoToView( photoBitmap: Bitmap ) {
+        profile_photo.setImageBitmap( photoBitmap )
+        profile_photo_bg.setImageBitmap( imageHelper.blurImage(photoBitmap) )
+    }
+
+    private fun saveUserPhotoToDB( photoBitmap: Bitmap ) {
+        val id = userId
+        val photoString = imageHelper.bitmapToBase64(photoBitmap)
+
+        if( id != null ) {
+            db.updateUserData(id,"photo", photoString)
+                    .addOnSuccessListener({
+                        completeProcess(getString(R.string.note_save_done))
+                    })
+                    .addOnFailureListener({ e: Exception ->
+                        completeProcess(getString(R.string.error_save_failed) + ": " + e)
+                    })
+        } else {
+            toast(getString(R.string.error_save_failed)+ ": " + getString(R.string.error_user_not_found))
+        }
     }
 }
