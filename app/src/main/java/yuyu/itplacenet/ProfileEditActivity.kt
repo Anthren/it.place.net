@@ -306,7 +306,12 @@ class ProfileEditActivity : AppCompatActivity() {
 
     // Кадрирование
     private fun performCrop(imageUri: Uri) {
-        CropImage.activity(imageUri).start(this)
+        val size = resources.getDimensionPixelSize(R.dimen.profile_photo_size)
+        CropImage.activity(imageUri)
+                .setAspectRatio(1,1)
+                .setFixAspectRatio(true)
+                .setMinCropResultSize(size, size)
+                .start(this)
     }
 
     // Устанавливаем сжатую картинку в профиль
