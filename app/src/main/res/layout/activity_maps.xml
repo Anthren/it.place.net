@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:map="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <fragment
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="yuyu.itplacenet.MapsActivity" />
+
+    <ImageButton
+        android:id="@+id/plus"
+        android:layout_width="@dimen/map_button_size"
+        android:layout_height="@dimen/map_button_size"
+        android:layout_above="@id/minus"
+        android:layout_alignStart="@id/minus"
+        android:layout_marginBottom="@dimen/extra_small_margin"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        map:srcCompat="@drawable/plus" />
+
+    <ImageButton
+        android:id="@+id/minus"
+        android:layout_width="@dimen/map_button_size"
+        android:layout_height="@dimen/map_button_size"
+        android:layout_above="@id/location"
+        android:layout_alignStart="@id/location"
+        android:layout_marginBottom="@dimen/large_margin"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        map:srcCompat="@drawable/minus" />
+
+    <ImageButton
+        android:id="@+id/location"
+        android:layout_width="@dimen/map_button_size"
+        android:layout_height="@dimen/map_button_size"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginBottom="@dimen/small_margin"
+        android:layout_marginEnd="@dimen/small_margin"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        map:srcCompat="@drawable/location" />
+
+</RelativeLayout>
+

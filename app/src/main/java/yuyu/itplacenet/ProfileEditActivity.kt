@@ -19,6 +19,7 @@ import android.widget.PopupMenu
 import com.theartofdev.edmodo.cropper.CropImage
 import java.io.FileNotFoundException
 import yuyu.itplacenet.helpers.ImageHelper
+import yuyu.itplacenet.helpers.PermissionHelper
 import yuyu.itplacenet.managers.AuthManager
 import yuyu.itplacenet.managers.DBManager
 import yuyu.itplacenet.models.User
@@ -34,6 +35,7 @@ class ProfileEditActivity : AppCompatActivity() {
     private val db = DBManager()
     private val validator = Validator(this)
     private val imageHelper = ImageHelper(this)
+    private val permissionHelper = PermissionHelper(this)
     private val progressBar = ProgressBar()
 
     private var user: User = auth.user
@@ -257,9 +259,9 @@ class ProfileEditActivity : AppCompatActivity() {
                 shouldShowRequestPermissionRationale(WRITE_EXTERNAL_STORAGE)) {
             Snackbar.make(profile_photo, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
                     .setAction(android.R.string.ok,
-                            { requestPermissions(arrayOf(CAMERA,WRITE_EXTERNAL_STORAGE), RC_LOAD_FROM_CAMERA) })
+                            { requestPermissions(arrayOf(CAMERA,WRITE_EXTERNAL_STORAGE), RC_CHECK_PERMISSION_CAMERA) })
         } else {
-            requestPermissions(arrayOf(CAMERA,WRITE_EXTERNAL_STORAGE), RC_LOAD_FROM_CAMERA)
+            requestPermissions(arrayOf(CAMERA,WRITE_EXTERNAL_STORAGE), RC_CHECK_PERMISSION_CAMERA)
         }
         return false
     }
@@ -267,7 +269,7 @@ class ProfileEditActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(requestCode: Int,
                                             permissions: Array<String>,
                                             grantResults: IntArray) {
-        if (requestCode == RC_LOAD_FROM_CAMERA) {
+        if (requestCode == RC_CHECK_PERMISSION_CAMERA) {
             if (grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 runCamera()
             }

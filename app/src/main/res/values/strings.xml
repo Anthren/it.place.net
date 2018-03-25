@@ -36,4 +36,10 @@
     <string name="permission_rationale">Необходимо дать приложению доступ к использованию камеры</string>
     <string name="error_create_temp_file">Не получилось создать временный файл!</string>
     <string name="error_user_not_found">Пользователь не найден!</string>
+
+    <!-- Strings related to map -->
+    <string name="title_activity_maps">Карта</string>
+    <string name="permission_my_location">Необходимо дать приложению доступ к определению местоположения</string>
+    <string name="error_my_location">Ошибка определения местоположения пользователя</string>
+    <string name="my_marker">Мое местоположение</string>
 </resources>

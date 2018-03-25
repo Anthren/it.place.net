@@ -24,17 +24,23 @@ android {
     }
 }
 
+ext {
+    android_support_version = '27.1.0'
+    google_play_services_version = '11.8.0'
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
-    implementation 'com.android.support:appcompat-v7:27.0.2'
-    implementation 'com.android.support:design:27.0.2'
-    implementation 'com.android.support:mediarouter-v7:27.0.2'
+    implementation "com.android.support:appcompat-v7:$android_support_version"
+    implementation "com.android.support:design:$android_support_version"
+    implementation "com.android.support:mediarouter-v7:$android_support_version"
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-    implementation 'com.google.android.gms:play-services:11.8.0'
-    implementation 'com.google.firebase:firebase-core:11.8.0'
-    implementation 'com.google.firebase:firebase-storage:11.8.0'
-    implementation 'com.google.firebase:firebase-firestore:11.8.0'
+    implementation "com.google.android.gms:play-services:$google_play_services_version"
+    implementation "com.google.android.gms:play-services-maps:$google_play_services_version"
+    implementation "com.google.firebase:firebase-core:$google_play_services_version"
+    implementation "com.google.firebase:firebase-storage:$google_play_services_version"
+    implementation "com.google.firebase:firebase-firestore:$google_play_services_version"
     implementation 'com.firebaseui:firebase-ui-auth:3.2.1'
     implementation 'com.firebaseui:firebase-ui-database:3.2.1'
     implementation 'com.makeramen:roundedimageview:2.3.0'
