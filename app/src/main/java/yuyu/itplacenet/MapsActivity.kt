@@ -1,32 +1,46 @@
 package yuyu.itplacenet
 
-import android.content.pm.PackageManager
-import android.Manifest.permission.*
 import android.annotation.SuppressLint
+import android.content.IntentSender
+import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.GoogleApiClient
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.*
+import com.google.android.gms.location.places.Places
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 
 import kotlinx.android.synthetic.main.activity_maps.*
 
+import yuyu.itplacenet.helpers.MapHelper
 import yuyu.itplacenet.helpers.PermissionHelper
+import yuyu.itplacenet.managers.AuthManager
+import yuyu.itplacenet.managers.DBManager
+import yuyu.itplacenet.models.User
 import yuyu.itplacenet.utils.*
 
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
+class MapsActivity : AppCompatActivity(),
+                        OnMapReadyCallback,
+                        GoogleApiClient.ConnectionCallbacks {
 
-    private lateinit var gMap: GoogleMap
-    private val zoomLevel = 10f
+    private lateinit var googleApiClient: GoogleApiClient
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var locationCallback: LocationCallback
 
+    private val auth = AuthManager()
+    private val db = DBManager()
     private val permissionHelper = PermissionHelper(this)
+    private val mapHelper = MapHelper(this)
+    private lateinit var curUser: User
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,62 +48,143 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
+        googleApiClient = GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addApi(LocationServices.API)
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
+                .build()
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult?) {
+                locationResult ?: return
+                for (location in locationResult.locations){
+                    updateMyLocation(location)
+                }
+            }
+        }
+
+        location.setOnClickListener {
+            startLocationUpdates()
+        }
     }
 
+    public override fun onStart() {
+        super.onStart()
+        googleApiClient.connect()
+    }
+
+    override fun onDestroy() {
+        googleApiClient.disconnect()
+        super.onDestroy()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        stopLocationUpdates()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        startLocationUpdates()
+    }
+
+
     override fun onMapReady(googleMap: GoogleMap) {
-        gMap = googleMap
+        mapHelper.setGoogleMap(googleMap)
 
         val uln = LatLng(54.19, 48.23)
-
-        val myMarker = gMap.addMarker(MarkerOptions()
-                .position(uln)
-                .title(getString(R.string.my_marker))
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.myself)))
-
-        //gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(uln,zoomLevel))
-
-        val cameraPosition = CameraPosition.Builder()
-                .target(uln)
-                .zoom(zoomLevel)
-                .build()
-        val cameraUpdate = CameraUpdateFactory.newCameraPosition(cameraPosition)
-        gMap.animateCamera(cameraUpdate)
-
-        if( permissionHelper.mayGetDeviceLocation() ) {
-            myLocation()
-        }
+        mapHelper.moveMyMarker(uln)
 
         plus.setOnClickListener {
-            mapZoomIn()
+            mapHelper.zoomIn()
         }
         minus.setOnClickListener {
-            mapZoomOut()
+            mapHelper.zoomOut()
+        }
+    }
+
+
+    override fun onConnected(bundle: Bundle?) {
+        startLocationUpdates()
+    }
+
+    override fun onConnectionSuspended(p0: Int) {}
+
+
+    private fun startLocationUpdates() {
+        if( permissionHelper.mayGetDeviceLocation() ) {
+            checkCurrentLocationSettings()
+        }
+    }
+
+    private fun stopLocationUpdates() {
+        fusedLocationClient.removeLocationUpdates(locationCallback)
+    }
+
+
+    private fun checkCurrentLocationSettings() {
+        val locationRequest = mapHelper.createLocationRequest()
+        val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+        val client = LocationServices.getSettingsClient(this)
+        val task = client.checkLocationSettings(builder.build())
+
+        task.addOnSuccessListener { _ ->
+            // All location settings are satisfied
+            requestLocation()
+        }
+
+        task.addOnFailureListener { exception ->
+            if (exception is ResolvableApiException){
+                // Location settings are not satisfied
+                val statusCode = (exception as ApiException).statusCode
+                when (statusCode) {
+                    LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
+                        try {
+                            exception.startResolutionForResult(this, REQUEST_CHECK_SETTINGS)
+                        } catch (sie: IntentSender.SendIntentException) {
+                            // Ignore the error.
+                        }
+                    }
+                    LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
+                        toast("Location settings are inadequate, and cannot be fixed here. Fix in Settings")
+                    }
+                }
+
+            }
         }
     }
 
     @SuppressLint("MissingPermission")
-    private fun myLocation() {
-        gMap.isMyLocationEnabled = true
+    private fun requestLocation() {
+        if (googleApiClient.isConnected) {
+            fusedLocationClient.lastLocation
+                    .addOnSuccessListener { location : Location? ->
+                        if( location == null ) {
+                            val locationRequest = mapHelper.createLocationRequest()
+                            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null /* Looper */)
+                        } else {
+                            updateMyLocation(location)
+                        }
+                    }
+        }
     }
 
-    private fun mapZoomIn() {
-        val cameraUpdate = CameraUpdateFactory.zoomIn()
-        gMap.animateCamera(cameraUpdate)
+    private fun updateMyLocation(location: Location) {
+        val position = LatLng(location.latitude, location.longitude)
+        mapHelper.moveMyMarker(position)
     }
 
-    private fun mapZoomOut() {
-        val cameraUpdate = CameraUpdateFactory.zoomOut()
-        gMap.animateCamera(cameraUpdate)
-    }
 
     override fun onRequestPermissionsResult(requestCode: Int,
                                             permissions: Array<String>,
                                             grantResults: IntArray) {
         if (requestCode == RC_CHECK_PERMISSION_LOCATION) {
-            if (grantResults.size == 1 &&
-                permissions[0] == ACCESS_FINE_LOCATION &&
-                grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                myLocation()
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                checkCurrentLocationSettings()
             } else {
                 toast(getString(R.string.error_my_location))
             }

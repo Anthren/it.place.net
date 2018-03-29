@@ -230,7 +230,7 @@ class ProfileEditActivity : AppCompatActivity() {
 
     // Запускаем камеру
     private fun runCamera() {
-        if( !mayUseCamera() )
+        if( !permissionHelper.mayUseCamera() )
             return
         val cameraIntent = imageHelper.createCameraIntent()
         if( cameraIntent.isIntentAvailable(this) ) {
@@ -244,26 +244,6 @@ class ProfileEditActivity : AppCompatActivity() {
             }
             startActivityForResult(cameraIntent, RC_LOAD_FROM_CAMERA)
         }
-    }
-
-    // Запрашиваем разрешение
-    private fun mayUseCamera(): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return true
-        }
-        if (checkSelfPermission(CAMERA) == PackageManager.PERMISSION_GRANTED &&
-                checkSelfPermission(WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED ) {
-            return true
-        }
-        if (shouldShowRequestPermissionRationale(CAMERA) ||
-                shouldShowRequestPermissionRationale(WRITE_EXTERNAL_STORAGE)) {
-            Snackbar.make(profile_photo, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
-                    .setAction(android.R.string.ok,
-                            { requestPermissions(arrayOf(CAMERA,WRITE_EXTERNAL_STORAGE), RC_CHECK_PERMISSION_CAMERA) })
-        } else {
-            requestPermissions(arrayOf(CAMERA,WRITE_EXTERNAL_STORAGE), RC_CHECK_PERMISSION_CAMERA)
-        }
-        return false
     }
 
     override fun onRequestPermissionsResult(requestCode: Int,

@@ -59,7 +59,7 @@
     <style name="Button.Link">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:textColor">@color/colorPrimary</item>
-        <item name="android:background">@color/fui_transparent</item>
+        <item name="android:background">@android:color/transparent</item>
     </style>
 
     <style name="Button.Link.Small">

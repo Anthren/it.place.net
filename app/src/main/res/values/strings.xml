@@ -40,6 +40,6 @@
     <!-- Strings related to map -->
     <string name="title_activity_maps">Карта</string>
     <string name="permission_my_location">Необходимо дать приложению доступ к определению местоположения</string>
-    <string name="error_my_location">Ошибка определения местоположения пользователя</string>
+    <string name="error_my_location">Ошибка определения местоположения пользователя. Разрешите доступ в настройках</string>
     <string name="my_marker">Мое местоположение</string>
 </resources>
