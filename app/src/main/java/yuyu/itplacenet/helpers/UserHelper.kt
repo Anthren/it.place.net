@@ -10,11 +10,17 @@ import yuyu.itplacenet.utils.*
 
 
 class UserHelper(
-        private val context: Context
+        private val context: Context,
+        private val silentMode : Boolean = false
 ) {
 
     private val auth = AuthManager()
     private val db = DBManager()
+    private val dateHelper = DateHelper()
+
+    private var lastUpdate: Long? = null
+    private var lastSelect: Long? = null
+    private val updatePeriod = 10 //In Minutes
 
     private var userId: String? = auth.userId
         get() = field ?: auth.userId
@@ -24,17 +30,21 @@ class UserHelper(
             }
         }
 
+
+    private fun msg( text: String ) {
+        if( !silentMode ) context.toast(text)
+    }
     private fun msgLoadError( e: Exception ) {
-        context.toast(context.getString(R.string.error_load_failed) + ": " + e)
+        this.msg(context.getString(R.string.error_load_failed) + ": " + e)
     }
     private fun msgSaveDone() {
-        context.toast(context.getString(R.string.note_save_done))
+        this.msg(context.getString(R.string.note_save_done))
     }
     private fun msgSaveError( e: Exception ) {
-        context.toast(context.getString(R.string.error_save_failed) + ": " + e)
+        this.msg(context.getString(R.string.error_save_failed) + ": " + e)
     }
     private fun msgUserNotFound() {
-        context.toast(context.getString(R.string.error_user_not_found))
+        this.msg(context.getString(R.string.error_user_not_found))
     }
 
     private fun checkUserExist( existCallback: ((User) -> Unit)? = null,
@@ -153,6 +163,44 @@ class UserHelper(
         updates["photo"] = photoString
 
         this.updateFields(updates)
+    }
+
+    fun updateCoordinates(
+            latitude: Double,
+            longitude: Double
+    ) {
+
+        fun checkAndUpdate( latitude: Double,
+                            longitude: Double
+        ) {
+            if( lastUpdate ?: 0 < dateHelper.beforeOnMinutes(updatePeriod) ) {
+
+                val moment = dateHelper.getTimeInMillis()
+                lastUpdate = moment
+                lastSelect = moment
+
+                val updates = HashMap<String,Any>()
+                updates["latitude"]   = latitude
+                updates["longitude"]  = longitude
+                updates["lastUpdate"] = moment
+
+                this.updateFields(updates)
+            }
+        }
+
+        if( lastUpdate == null &&
+            lastSelect ?: 0 < dateHelper.beforeOnMinutes(updatePeriod)
+        ) {
+            val sc = { user: User ->
+                lastUpdate = user.lastUpdate
+                checkAndUpdate(latitude, longitude)
+            }
+            this.loadUserData(sc)
+            lastSelect = dateHelper.getTimeInMillis()
+
+        } else {
+            checkAndUpdate(latitude, longitude)
+        }
     }
 
 }

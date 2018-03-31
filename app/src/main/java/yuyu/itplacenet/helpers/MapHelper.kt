@@ -1,7 +1,6 @@
 package yuyu.itplacenet.helpers
 
 import android.app.Activity
-import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -12,9 +11,6 @@ class MapHelper(private val activity: Activity) {
 
     private lateinit var googleMap: GoogleMap
     private lateinit var myMarker: Marker
-    private lateinit var googleApiClient: GoogleApiClient
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var locationCallback: LocationCallback
 
     private var zoomLevel = 10f
     private val locationUpdateInterval: Long = 10000

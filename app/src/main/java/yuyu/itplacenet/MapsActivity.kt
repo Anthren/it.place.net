@@ -21,9 +21,7 @@ import kotlinx.android.synthetic.main.activity_maps.*
 
 import yuyu.itplacenet.helpers.MapHelper
 import yuyu.itplacenet.helpers.PermissionHelper
-import yuyu.itplacenet.managers.AuthManager
-import yuyu.itplacenet.managers.DBManager
-import yuyu.itplacenet.models.User
+import yuyu.itplacenet.helpers.UserHelper
 import yuyu.itplacenet.utils.*
 
 
@@ -35,11 +33,9 @@ class MapsActivity : AppCompatActivity(),
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
 
-    private val auth = AuthManager()
-    private val db = DBManager()
     private val permissionHelper = PermissionHelper(this)
     private val mapHelper = MapHelper(this)
-    private lateinit var curUser: User
+    private val userHelper = UserHelper(this, true)
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -144,13 +140,13 @@ class MapsActivity : AppCompatActivity(),
                 when (statusCode) {
                     LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
                         try {
-                            exception.startResolutionForResult(this, REQUEST_CHECK_SETTINGS)
+                            exception.startResolutionForResult(this, RC_CHECK_LOCALE_SETTINGS)
                         } catch (sie: IntentSender.SendIntentException) {
                             // Ignore the error.
                         }
                     }
                     LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
-                        toast("Location settings are inadequate, and cannot be fixed here. Fix in Settings")
+                        toast(getString(R.string.error_location_settings))
                     }
                 }
 
@@ -176,6 +172,7 @@ class MapsActivity : AppCompatActivity(),
     private fun updateMyLocation(location: Location) {
         val position = LatLng(location.latitude, location.longitude)
         mapHelper.moveMyMarker(position)
+        userHelper.updateCoordinates(position.latitude, position.longitude)
     }
 
 
