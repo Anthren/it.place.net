@@ -9,6 +9,7 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import yuyu.itplacenet.utils.*
+import yuyu.itplacenet.helpers.UserHelper
 import yuyu.itplacenet.managers.AuthManager
 import yuyu.itplacenet.ui.ProgressBar
 import yuyu.itplacenet.ui.Validator
@@ -17,7 +18,9 @@ import kotlinx.android.synthetic.main.activity_login.*
 
 class LoginActivity : AppCompatActivity() {
 
+    private val auth = AuthManager()
     private val validator = Validator(this)
+    private val userHelper = UserHelper(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,7 +57,6 @@ class LoginActivity : AppCompatActivity() {
 
     private fun userSingIn(email: String, password: String) {
         val answerIntent = Intent()
-        val auth = AuthManager()
         val progressBar = ProgressBar(login_form, login_progress)
 
         progressBar.show()
@@ -101,13 +103,14 @@ class LoginActivity : AppCompatActivity() {
     /* Регистрация */
 
     private fun gotoRegistration() {
-        startActivityForResult( AuthManager().makeRegistrationIntentBuilder().build(), RC_SIGN_IN )
+        startActivityForResult( auth.makeRegistrationIntentBuilder().build(), RC_SIGN_IN )
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == RC_SIGN_IN) {
             if (resultCode == RESULT_OK) {
+                userHelper.addUserIfNotExist(auth.user)
                 gotoMain()
             } else {
                 toast(getString(R.string.error_sign_in_failed))

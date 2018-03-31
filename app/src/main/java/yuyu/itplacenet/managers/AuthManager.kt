@@ -45,7 +45,7 @@ class AuthManager {
         val curUser = this.auth.currentUser
         return when (curUser) {
             null -> User()
-            else -> User(name=curUser.displayName, email=curUser.email, phone=curUser.phoneNumber, photo=curUser.photoUrl.toString())
+            else -> User(name=curUser.displayName, email=curUser.email, phone=curUser.phoneNumber, photo=curUser.photoUrl?.toString())
         }
     }
 }

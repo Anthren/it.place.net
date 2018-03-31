@@ -12,15 +12,18 @@ class DBManager {
     private val db = FirebaseFirestore.getInstance()
     private val dbUsers = "users"
 
+
+    fun getResultId( documentReference: DocumentReference ) : String {
+        return documentReference.id
+    }
+
+
     fun getUserData( userId: String ) : Task<DocumentSnapshot> {
         return db.collection(dbUsers).document(userId).get()
     }
 
     fun parseUserData( documentSnapshot: DocumentSnapshot ) : User {
-        return when( documentSnapshot.exists() ) {
-            true  -> documentSnapshot.toObject(User::class.java)
-            false -> User()
-        }
+        return documentSnapshot.toObject(User::class.java)
     }
 
     fun setUserData( userId: String, user: User ) : Task<Void> {
@@ -31,11 +34,9 @@ class DBManager {
         return db.collection(dbUsers).add(user)
     }
 
-    fun updateUserData( userId: String, key: String, value: Any ) : Task<Void> {
-        return db.collection(dbUsers).document(userId).update(key, value)
+    fun updateUserData( userId: String, arr: Map<String,Any> ) : Task<Void> {
+        return db.collection(dbUsers).document(userId).update(arr)
+
     }
 
-    fun getResultId( documentReference: DocumentReference ) : String {
-        return documentReference.id
-    }
 }

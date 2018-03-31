@@ -10,36 +10,33 @@ import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
-import android.Manifest.permission.*
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.os.Build
-import android.support.design.widget.Snackbar
 import android.widget.PopupMenu
 import com.theartofdev.edmodo.cropper.CropImage
 import java.io.FileNotFoundException
+
 import yuyu.itplacenet.helpers.ImageHelper
 import yuyu.itplacenet.helpers.PermissionHelper
-import yuyu.itplacenet.managers.AuthManager
-import yuyu.itplacenet.managers.DBManager
+import yuyu.itplacenet.helpers.UserHelper
 import yuyu.itplacenet.models.User
 import yuyu.itplacenet.ui.ProgressBar
 import yuyu.itplacenet.ui.Validator
 import yuyu.itplacenet.utils.*
+
 import kotlinx.android.synthetic.main.activity_profile_edit.*
 
 
 class ProfileEditActivity : AppCompatActivity() {
 
-    private val auth = AuthManager()
-    private val db = DBManager()
-    private val validator = Validator(this)
+    private var userPhoto: String? = null
+
     private val imageHelper = ImageHelper(this)
     private val permissionHelper = PermissionHelper(this)
+    private val userHelper = UserHelper(this)
+    private val validator = Validator(this)
     private val progressBar = ProgressBar()
 
-    private var user: User = auth.user
-    private var userId: String? = auth.userId
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,21 +78,17 @@ class ProfileEditActivity : AppCompatActivity() {
 
     private fun loadUserData() {
         progressBar.show()
-        val id = userId
-        if( id != null ) {
-            db.getUserData(id)
-                    .addOnSuccessListener({
-                        user = db.parseUserData(it)
-                        updateProfileView(user)
-                        updateUserPhotoView(user)
-                        completeProcess(null)
-                    })
-                    .addOnFailureListener({ e: Exception ->
-                        completeProcess(getString(R.string.error_load_failed) + ": " + e)
-                    })
-        } else {
-            completeProcess(getString(R.string.error_load_failed))
+
+        val successCallback = { u: User ->
+            updateProfileView(u)
+            updateUserPhotoView(u)
+            completeProcess()
         }
+        val failureCallback = {
+            completeProcess()
+        }
+
+        userHelper.loadUserData(successCallback, failureCallback)
     }
 
     private fun updateProfileView( user: User ) {
@@ -119,29 +112,17 @@ class ProfileEditActivity : AppCompatActivity() {
         if (validateAll()) {
             progressBar.show()
 
-            val id = userId
             val user = User(name=user_name.str(), email=user_email.str(), phone=user_phone.str())
 
-            if( id != null ) {
-                db.setUserData(id,user)
-                        .addOnSuccessListener({
-                            updateProfileView(user)
-                            completeProcess(getString(R.string.note_save_done))
-                        })
-                        .addOnFailureListener({ e: Exception ->
-                            completeProcess(getString(R.string.error_save_failed) + ": " + e)
-                        })
-            } else {
-                db.addUser(user)
-                        .addOnSuccessListener({
-                            userId = db.getResultId(it)
-                            updateProfileView(user)
-                            completeProcess(getString(R.string.note_save_done))
-                        })
-                        .addOnFailureListener({ e: Exception ->
-                            completeProcess(getString(R.string.error_save_failed) + ": " + e)
-                        })
+            val successCallback = { u: User ->
+                updateProfileView(u)
+                completeProcess()
             }
+            val failureCallback = {
+                completeProcess()
+            }
+
+            userHelper.saveUserData(user, successCallback, failureCallback)
         }
     }
 
@@ -163,10 +144,7 @@ class ProfileEditActivity : AppCompatActivity() {
 
     /* Progress Bar */
 
-    private fun completeProcess( msgString: String? ) {
-        if( msgString != null ) {
-            toast(msgString)
-        }
+    private fun completeProcess() {
         progressBar.hide() // не работает
         hide() // работает
     }
@@ -237,7 +215,7 @@ class ProfileEditActivity : AppCompatActivity() {
             try {
                 val photoURI = imageHelper.createImageFile()
                 cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                user.photo = photoURI.toString()
+                userPhoto = photoURI.toString()
             }
             catch( e: Exception ) {
                 toast(getString(R.string.error_create_temp_file) + " " + e)
@@ -274,8 +252,8 @@ class ProfileEditActivity : AppCompatActivity() {
                         if (data.hasExtra("data")) {
                             val photo = imageHelper.loadSmallCameraPhoto(data)
                             setUserPhoto( photo )
-                        } else if( user.photo != null ) {
-                            val photoUri = imageHelper.loadPhotoFromCamera(user.photo!!)
+                        } else if( userPhoto != null ) {
+                            val photoUri = imageHelper.loadPhotoFromCamera(userPhoto!!)
                             performCrop( photoUri )
                         }
                     } catch (e: FileNotFoundException) {
@@ -323,19 +301,7 @@ class ProfileEditActivity : AppCompatActivity() {
     }
 
     private fun saveUserPhotoToDB( photoBitmap: Bitmap ) {
-        val id = userId
         val photoString = imageHelper.bitmapToBase64(photoBitmap)
-
-        if( id != null ) {
-            db.updateUserData(id,"photo", photoString)
-                    .addOnSuccessListener({
-                        completeProcess(getString(R.string.note_save_done))
-                    })
-                    .addOnFailureListener({ e: Exception ->
-                        completeProcess(getString(R.string.error_save_failed) + ": " + e)
-                    })
-        } else {
-            toast(getString(R.string.error_save_failed)+ ": " + getString(R.string.error_user_not_found))
-        }
+        userHelper.savePhoto(photoString)
     }
 }

@@ -8,7 +8,6 @@ import yuyu.itplacenet.utils.*
 import kotlinx.android.synthetic.main.activity_main.*
 
 
-
 class MainActivity : AppCompatActivity() {
 
     private val auth = AuthManager()
