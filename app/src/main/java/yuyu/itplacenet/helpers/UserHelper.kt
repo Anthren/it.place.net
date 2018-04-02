@@ -1,6 +1,7 @@
 package yuyu.itplacenet.helpers
 
 import android.content.Context
+import com.google.firebase.firestore.ListenerRegistration
 
 import yuyu.itplacenet.R
 import yuyu.itplacenet.managers.AuthManager
@@ -21,6 +22,8 @@ class UserHelper(
     private var lastUpdate: Long? = null
     private var lastSelect: Long? = null
     private val updatePeriod = 10 //In Minutes
+
+    private lateinit var friendsListener: ListenerRegistration
 
     private var userId: String? = auth.userId
         get() = field ?: auth.userId
@@ -124,6 +127,7 @@ class UserHelper(
         }
     }
 
+    // Загрузка данных
 
     fun loadUserData( successCallback: ((User) -> Unit)? = null,
                       failureCallback: (() -> Unit)? = null
@@ -141,6 +145,8 @@ class UserHelper(
         }
         this.checkUserExist(null, notExistCallback)
     }
+
+    // Сохранение данных
 
     fun saveUserData( user: User,
                       successCallback: ((User) -> Unit)? = null,
@@ -164,6 +170,8 @@ class UserHelper(
 
         this.updateFields(updates)
     }
+
+    // Местоположение
 
     fun updateCoordinates(
             latitude: Double,
@@ -201,6 +209,33 @@ class UserHelper(
         } else {
             checkAndUpdate(latitude, longitude)
         }
+    }
+
+    // Друзья
+
+    fun startFriendsPositionListener(
+            changedCallback: ((String,String,Double?,Double?) -> Unit)? = null,
+            removedCallback: ((String) -> Unit)? = null
+    ) {
+        val curUserId = userId
+        if (curUserId != null) {
+
+            val cc = { id: String, user: User ->
+                if( changedCallback != null && id != curUserId ) {
+                    val name = user.name ?: ""
+                    val latitude  = user.latitude
+                    val longitude = user.longitude
+                    changedCallback(id, name, latitude, longitude)
+                }
+            }
+
+            friendsListener = db.allUsersListener( cc, cc, removedCallback, {e: String -> msg(e)} )
+        }
+
+    }
+
+    fun stopFriendsPositionListener() {
+        friendsListener.remove()
     }
 
 }

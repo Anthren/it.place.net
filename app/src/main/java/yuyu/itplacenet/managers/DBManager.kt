@@ -1,10 +1,7 @@
 package yuyu.itplacenet.managers
 
 import com.google.android.gms.tasks.Task
-import com.google.firebase.firestore.DocumentReference
-import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.*
 import yuyu.itplacenet.models.User
 
 class DBManager {
@@ -36,7 +33,41 @@ class DBManager {
 
     fun updateUserData( userId: String, arr: Map<String,Any> ) : Task<Void> {
         return db.collection(dbUsers).document(userId).update(arr)
+    }
 
+
+    fun allUsersListener(
+            addedCallback:    ((String,User) -> Unit)? = null,
+            modifiedCallback: ((String,User) -> Unit)? = null,
+            removedCallback:  ((String) -> Unit)? = null,
+            failureCallback:  ((String) -> Unit)? = null
+    ) : ListenerRegistration {
+        return db.collection(dbUsers)
+                 .addSnapshotListener({snapshots: QuerySnapshot, e: FirebaseFirestoreException? ->
+                        if (e == null) {
+                            var user: User
+                            var userId: String
+
+                            for ( dc in snapshots.documentChanges) {
+                                user = dc.document.toObject(User::class.java)
+                                userId = dc.document.id
+
+                                when( dc.type ) {
+                                    DocumentChange.Type.ADDED -> {
+                                        addedCallback?.invoke(userId, user)
+                                    }
+                                    DocumentChange.Type.MODIFIED -> {
+                                        modifiedCallback?.invoke(userId, user)
+                                    }
+                                    DocumentChange.Type.REMOVED -> {
+                                        removedCallback?.invoke(userId)
+                                    }
+                                }
+                            }
+                        } else {
+                            failureCallback?.invoke(e.toString())
+                        }
+        })
     }
 
 }

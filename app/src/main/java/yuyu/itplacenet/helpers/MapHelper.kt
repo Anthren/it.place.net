@@ -11,6 +11,7 @@ class MapHelper(private val activity: Activity) {
 
     private lateinit var googleMap: GoogleMap
     private lateinit var myMarker: Marker
+    private var friendsMarkers = HashMap<String,Marker>()
 
     private var zoomLevel = 10f
     private val locationUpdateInterval: Long = 10000
@@ -24,20 +25,41 @@ class MapHelper(private val activity: Activity) {
         //googleMap.uiSettings.isMyLocationButtonEnabled = false
     }
 
-    fun moveMyMarker( position: LatLng ) {
+    private fun addMyMarker( position: LatLng ) {
+        myMarker = googleMap.addMarker(MarkerOptions()
+                .position(position)
+                .title(activity.getString(R.string.my_marker))
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.myself)))
+    }
+
+    fun setMyMarker(position: LatLng ) {
         if( ! ::myMarker.isInitialized ) {
-            myMarker = this.addMyMarker(position)
+            this.addMyMarker(position)
         } else {
             myMarker.position = position
         }
         this.moveCamera(position)
     }
 
-    private fun addMyMarker( position: LatLng ) : Marker {
-        return googleMap.addMarker(MarkerOptions()
-                        .position(position)
-                        .title(activity.getString(R.string.my_marker))
-                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.myself)))
+    private fun addFriendMarker( id: String, name: String, position: LatLng ) {
+        friendsMarkers[id] = googleMap.addMarker(MarkerOptions()
+                .position(position)
+                .title(name)
+                .snippet(position.toString())
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin)))
+    }
+
+    fun setFriendMarker( id: String, name: String, position: LatLng ) {
+        if( friendsMarkers.containsKey(id) ) {
+            friendsMarkers.getValue(id).position = position
+        } else {
+            this.addFriendMarker(id, name, position)
+        }
+    }
+
+    fun removeFriendMarker(id: String) {
+        friendsMarkers.getValue(id).remove()
+        friendsMarkers.remove(id)
     }
 
     private fun moveCamera( position: LatLng ) {

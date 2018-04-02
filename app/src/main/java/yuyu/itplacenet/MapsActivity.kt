@@ -78,22 +78,25 @@ class MapsActivity : AppCompatActivity(),
         super.onDestroy()
     }
 
-    override fun onPause() {
-        super.onPause()
-        stopLocationUpdates()
-    }
-
     override fun onResume() {
         super.onResume()
         startLocationUpdates()
+        startDisplayFriendsPosition()
     }
 
+    override fun onPause() {
+        super.onPause()
+        stopLocationUpdates()
+        stopDisplayFriendsPosition()
+    }
+
+    // Карта
 
     override fun onMapReady(googleMap: GoogleMap) {
         mapHelper.setGoogleMap(googleMap)
 
         val uln = LatLng(54.19, 48.23)
-        mapHelper.moveMyMarker(uln)
+        mapHelper.setMyMarker(uln)
 
         plus.setOnClickListener {
             mapHelper.zoomIn()
@@ -103,6 +106,7 @@ class MapsActivity : AppCompatActivity(),
         }
     }
 
+    // Мое местоположение
 
     override fun onConnected(bundle: Bundle?) {
         startLocationUpdates()
@@ -171,7 +175,7 @@ class MapsActivity : AppCompatActivity(),
 
     private fun updateMyLocation(location: Location) {
         val position = LatLng(location.latitude, location.longitude)
-        mapHelper.moveMyMarker(position)
+        mapHelper.setMyMarker(position)
         userHelper.updateCoordinates(position.latitude, position.longitude)
     }
 
@@ -186,5 +190,27 @@ class MapsActivity : AppCompatActivity(),
                 toast(getString(R.string.error_my_location))
             }
         }
+    }
+
+    // Друзья
+
+    private fun startDisplayFriendsPosition() {
+        val changedCallback = { id: String,
+                                name: String,
+                                lat: Double?,
+                                lng: Double? ->
+            if( lat != null && lng != null ) {
+                val position = LatLng(lat, lng)
+                mapHelper.setFriendMarker(id, name, position)
+            }
+        }
+        val removedCallback = { id: String ->
+            mapHelper.removeFriendMarker(id)
+        }
+        userHelper.startFriendsPositionListener(changedCallback, removedCallback)
+    }
+
+    private fun stopDisplayFriendsPosition() {
+        userHelper.stopFriendsPositionListener()
     }
 }
