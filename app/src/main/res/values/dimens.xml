@@ -21,4 +21,10 @@
     <dimen name="profile_photo_size">88dp</dimen>
 
     <dimen name="map_button_size">40dp</dimen>
+    <dimen name="map_photo_size">42dp</dimen>
+    <dimen name="map_photo_border_size">3dp</dimen>
+    <dimen name="map_marker_margin_top">9dp</dimen>
+    <dimen name="map_marker_margin_bottom">6dp</dimen>
+    <dimen name="map_marker_margin_right">4dp</dimen>
+    <dimen name="map_marker_width">24dp</dimen>
 </resources>

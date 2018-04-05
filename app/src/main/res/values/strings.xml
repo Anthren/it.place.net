@@ -43,4 +43,8 @@
     <string name="error_my_location">Ошибка определения местоположения пользователя. Разрешите доступ в настройках</string>
     <string name="error_location_settings">Настройки определения местоположения неадекватны и не могут быть исправлены здесь. Исправьте в Настройках</string>
     <string name="my_marker">Мое местоположение</string>
+    <string name="was_here">Был(а) здесь %s назад</string>
+    <string name="days">%s дн.</string>
+    <string name="hours">%s ч.</string>
+    <string name="minutes">%s мин.</string>
 </resources>

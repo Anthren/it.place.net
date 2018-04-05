@@ -95,9 +95,6 @@ class MapsActivity : AppCompatActivity(),
     override fun onMapReady(googleMap: GoogleMap) {
         mapHelper.setGoogleMap(googleMap)
 
-        val uln = LatLng(54.19, 48.23)
-        mapHelper.setMyMarker(uln)
-
         plus.setOnClickListener {
             mapHelper.zoomIn()
         }
@@ -175,8 +172,8 @@ class MapsActivity : AppCompatActivity(),
 
     private fun updateMyLocation(location: Location) {
         val position = LatLng(location.latitude, location.longitude)
+        userHelper.updateCoordinates(location.latitude, location.longitude)
         mapHelper.setMyMarker(position)
-        userHelper.updateCoordinates(position.latitude, position.longitude)
     }
 
 
@@ -197,11 +194,14 @@ class MapsActivity : AppCompatActivity(),
     private fun startDisplayFriendsPosition() {
         val changedCallback = { id: String,
                                 name: String,
+                                photo: String?,
                                 lat: Double?,
-                                lng: Double? ->
+                                lng: Double?,
+                                lastUpdate: String ->
             if( lat != null && lng != null ) {
                 val position = LatLng(lat, lng)
-                mapHelper.setFriendMarker(id, name, position)
+                mapHelper.setFriendMarker(id, name, position, lastUpdate)
+                mapHelper.changeFriendMarkerIcon(id, photo)
             }
         }
         val removedCallback = { id: String ->

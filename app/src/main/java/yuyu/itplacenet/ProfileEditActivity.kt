@@ -99,11 +99,13 @@ class ProfileEditActivity : AppCompatActivity() {
     }
 
     private fun updateUserPhotoView( user: User ) {
-        val photo = user.photo
-        if( photo != null && photo != "" ) {
-            val photoBitmap = imageHelper.base64ToBitmap(photo)
-            setUserPhotoToView(photoBitmap)
+        var photoBitmap = userHelper.loadPhotoFromBase64(user.photo)
+        var showBlurBg = true
+        if( photoBitmap == null ) {
+            photoBitmap = userHelper.loadDefaultPhoto()
+            showBlurBg = false
         }
+        setUserPhotoToView(photoBitmap, showBlurBg)
     }
 
     /* Сохранение данных */
@@ -285,7 +287,6 @@ class ProfileEditActivity : AppCompatActivity() {
     // Устанавливаем сжатую картинку в профиль
     private fun setUserPhoto(imageUri: Uri?, imageBitmap: Bitmap? = null) {
         val photoBitmap = imageHelper.scale(profile_photo, imageUri, imageBitmap)
-
         if( photoBitmap != null ) {
             setUserPhotoToView(photoBitmap)
             saveUserPhotoToDB(photoBitmap)
@@ -295,9 +296,9 @@ class ProfileEditActivity : AppCompatActivity() {
         return setUserPhoto(null, imageBitmap)
     }
 
-    private fun setUserPhotoToView( photoBitmap: Bitmap ) {
+    private fun setUserPhotoToView(photoBitmap: Bitmap, showBlurBg: Boolean = true) {
         profile_photo.setImageBitmap( photoBitmap )
-        profile_photo_bg.setImageBitmap( imageHelper.blurImage(photoBitmap) )
+        if( showBlurBg ) profile_photo_bg.setImageBitmap( imageHelper.blurImage(photoBitmap) )
     }
 
     private fun saveUserPhotoToDB( photoBitmap: Bitmap ) {

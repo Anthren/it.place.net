@@ -23,7 +23,6 @@
                 android:layout_alignParentTop="true"
                 android:layout_centerHorizontal="true"
                 android:scaleType="centerCrop"
-                app:srcCompat="@color/colorLight"
                 />
 
             <RelativeLayout
@@ -46,7 +45,7 @@
                     app:riv_corner_radius="30dip"
                     app:riv_mutate_background="true"
                     app:riv_oval="true"
-                    tools:background="@drawable/img"
+                    tools:background="@drawable/no_photo"
                     />
 
                 <TextView

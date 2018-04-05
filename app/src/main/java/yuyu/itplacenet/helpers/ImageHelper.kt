@@ -4,8 +4,7 @@ import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.graphics.*
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -21,6 +20,15 @@ import yuyu.itplacenet.utils.BlurBuilder
 
 
 class ImageHelper(private val context: Context) {
+
+    private val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+    private val imagePrefix = "JPEG_"
+    private val imageSuffix = ".jpg"
+
+    // Загрузка из ресурсов
+    fun loadFromRes(id: Int) : Bitmap {
+        return BitmapFactory.decodeResource(context.resources, id)
+    }
 
     // Создаем интент галереи
     fun createGalleryIntent() : Intent {
@@ -49,9 +57,8 @@ class ImageHelper(private val context: Context) {
     @Throws(IOException::class)
     private fun createTempImageFile(): File {
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
-        val imageFileName = "JPEG_" + timeStamp + "_"
-        val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-        val image = File.createTempFile( imageFileName,".jpg", storageDir )
+        val imageFileName = this.imagePrefix + timeStamp + "_"
+        val image = File.createTempFile( imageFileName,imageSuffix, this.storageDir )
         val currentPhotoPath = image.absolutePath
 
         val values = ContentValues().apply {
@@ -103,13 +110,13 @@ class ImageHelper(private val context: Context) {
         if( imageUri != null ) {
             photoBitmap = scaleImage(imageView, imageUri)
         } else if( imageBitmap != null ) {
-            photoBitmap = scaleBitmap(imageView, imageBitmap)
+            photoBitmap = scaleBitmap(imageBitmap, imageView.width, imageView.height)
         }
 
         return photoBitmap
     }
 
-    fun scaleImage(imageView: ImageView, imageUri: Uri) : Bitmap {
+    private fun scaleImage(imageView: ImageView, imageUri: Uri) : Bitmap {
         val bmOptions = BitmapFactory.Options()
 
         val decodeImageStream = context.contentResolver.openInputStream(imageUri)
@@ -132,13 +139,11 @@ class ImageHelper(private val context: Context) {
         return imageBitmap
     }
 
-    fun scaleBitmap(imageView: ImageView, imageBitmap: Bitmap) : Bitmap {
-        val targetW = imageView.width
-        val targetH = imageView.height
-        return Bitmap.createScaledBitmap(imageBitmap, targetW, targetH, false)
+    private fun scaleBitmap(imageBitmap: Bitmap, targetW: Int, targetH: Int) : Bitmap {
+        return Bitmap.createScaledBitmap(imageBitmap, targetW, targetH, true)
     }
 
-    private fun calculateScaleFactor(photoW: Int, photoH: Int, targetW: Int, targetH: Int ) : Int {
+    private fun calculateScaleFactor(photoW: Int, photoH: Int, targetW: Int, targetH: Int) : Int {
         var scaleFactor = 1
         if (photoH > targetH || photoW > targetW) {
             scaleFactor = Math.round(
@@ -152,7 +157,7 @@ class ImageHelper(private val context: Context) {
     }
 
     // Размытие
-    fun blurImage( imageBitmap: Bitmap ) : Bitmap {
+    fun blurImage(imageBitmap: Bitmap) : Bitmap {
         return BlurBuilder(context).blur(imageBitmap)
     }
 
@@ -167,6 +172,59 @@ class ImageHelper(private val context: Context) {
     fun base64ToBitmap(b64: String): Bitmap {
         val imageAsBytes = Base64.decode(b64.toByteArray(), Base64.DEFAULT)
         return BitmapFactory.decodeByteArray(imageAsBytes, 0, imageAsBytes.size)
+    }
+
+    // Склейка изображений
+    fun glue(bmp1: Bitmap, bmp1Options: Map<String,Int>?, bmp2: Bitmap, bmp2Options: Map<String,Int>?) : Bitmap {
+        val newWidth = bmp1.width + bmp2.width +
+                       ( bmp1Options?.get("margin_left") ?: 0 ) + ( bmp1Options?.get("margin_right") ?: 0 ) +
+                       ( bmp2Options?.get("margin_left") ?: 0 ) + ( bmp2Options?.get("margin_right") ?: 0 )
+
+        val newHeight = Math.max(
+                bmp1.height + ( bmp1Options?.get("margin_top") ?: 0 ) + ( bmp1Options?.get("margin_bottom") ?: 0 ) ,
+                bmp2.height + ( bmp2Options?.get("margin_top") ?: 0 ) + ( bmp2Options?.get("margin_bottom") ?: 0 )
+        )
+
+        val posX1 = bmp1Options?.get("margin_left") ?: 0
+        val posY1 = bmp1Options?.get("margin_top") ?: 0
+        val posX2 = bmp1.width + ( bmp1Options?.get("margin_right") ?: 0 ) + ( bmp2Options?.get("margin_left") ?: 0 )
+        val posY2 = bmp2Options?.get("margin_top") ?: 0
+
+        val canvasBitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(canvasBitmap)
+        canvas.drawBitmap(bmp1, posX1.toFloat(), posY1.toFloat(), Paint())
+        canvas.drawBitmap(bmp2, posX2.toFloat(), posY2.toFloat(), Paint())
+        return canvasBitmap
+    }
+
+    // Вписать в круг
+    fun roundWithWhiteBorder(sourceBitmap: Bitmap, size: Int, borderWidth: Int) : Bitmap {
+        val fullSize = size + borderWidth * 2
+        val halfSize = fullSize.toFloat() / 2f
+        val borderW = borderWidth.toFloat()
+        val radius = halfSize - borderW / 2
+
+        val canvasBitmap = Bitmap.createBitmap(fullSize, fullSize, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(canvasBitmap)
+
+        val scaledBitmap = this.scaleBitmap(sourceBitmap, fullSize, fullSize)
+        sourceBitmap.recycle()
+
+        val photoPaint = Paint()
+            photoPaint.shader = BitmapShader(scaledBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+            photoPaint.isAntiAlias = true
+        canvas.drawCircle(halfSize, halfSize, radius, photoPaint)
+
+        if (borderWidth > 0) {
+            val borderPaint = Paint()
+                borderPaint.style = Paint.Style.STROKE
+                borderPaint.strokeWidth = borderW
+                borderPaint.color = Color.WHITE
+                borderPaint.isAntiAlias = true
+            canvas.drawCircle(halfSize, halfSize, radius, borderPaint)
+        }
+
+        return canvasBitmap
     }
 
 }

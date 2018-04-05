@@ -1,6 +1,7 @@
 package yuyu.itplacenet.helpers
 
 import android.content.Context
+import android.graphics.Bitmap
 import com.google.firebase.firestore.ListenerRegistration
 
 import yuyu.itplacenet.R
@@ -17,7 +18,8 @@ class UserHelper(
 
     private val auth = AuthManager()
     private val db = DBManager()
-    private val dateHelper = DateHelper()
+    private val dateHelper = DateHelper(context)
+    private val imageHelper = ImageHelper(context)
 
     private var lastUpdate: Long? = null
     private var lastSelect: Long? = null
@@ -146,6 +148,19 @@ class UserHelper(
         this.checkUserExist(null, notExistCallback)
     }
 
+    // Фотография
+    fun loadPhotoFromBase64( photoStr: String?, loadDefault: Boolean = false ) : Bitmap? {
+        return when {
+            photoStr != null && photoStr != "" -> imageHelper.base64ToBitmap(photoStr)
+            loadDefault -> this.loadDefaultPhoto()
+            else -> null
+        }
+    }
+
+    fun loadDefaultPhoto() : Bitmap {
+        return imageHelper.loadFromRes(R.drawable.no_photo)
+    }
+
     // Сохранение данных
 
     fun saveUserData( user: User,
@@ -214,7 +229,7 @@ class UserHelper(
     // Друзья
 
     fun startFriendsPositionListener(
-            changedCallback: ((String,String,Double?,Double?) -> Unit)? = null,
+            changedCallback: ((String,String,String?,Double?,Double?,String) -> Unit)? = null,
             removedCallback: ((String) -> Unit)? = null
     ) {
         val curUserId = userId
@@ -223,9 +238,11 @@ class UserHelper(
             val cc = { id: String, user: User ->
                 if( changedCallback != null && id != curUserId ) {
                     val name = user.name ?: ""
+                    val photo = user.photo
                     val latitude  = user.latitude
                     val longitude = user.longitude
-                    changedCallback(id, name, latitude, longitude)
+                    val lastUpdate = dateHelper.diffString(user.lastUpdate)
+                    changedCallback(id, name, photo, latitude, longitude, lastUpdate)
                 }
             }
 
@@ -237,5 +254,6 @@ class UserHelper(
     fun stopFriendsPositionListener() {
         friendsListener.remove()
     }
+
 
 }

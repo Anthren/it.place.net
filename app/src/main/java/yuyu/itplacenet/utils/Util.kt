@@ -14,19 +14,20 @@ import ru.tinkoff.decoro.watchers.MaskFormatWatcher
 fun Context.toast(message: CharSequence, duration: Int = Toast.LENGTH_LONG) =
         Toast.makeText(this.applicationContext, message, duration).show()
 
+fun Context.getSize(id: Int) : Int =
+        this.resources.getDimensionPixelSize(id)
+
 fun Intent.isIntentAvailable(context: Context) : Boolean {
     val packageManager = context.packageManager
     val list = packageManager.queryIntentActivities(this, PackageManager.MATCH_DEFAULT_ONLY)
     return list.isNotEmpty()
 }
 
-fun EditText.str() : String {
-    return this.text.toString()
-}
+fun EditText.str() : String =
+        this.text.toString()
 
-fun EditText.isEmpty() : Boolean {
-    return this.str().isEmpty()
-}
+fun EditText.isEmpty() : Boolean =
+        this.str().isEmpty()
 
 fun EditText.makePhoneMask() {
     val formatWatcher = MaskFormatWatcher(
