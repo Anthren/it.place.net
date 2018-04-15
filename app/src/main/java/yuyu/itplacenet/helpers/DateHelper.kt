@@ -5,10 +5,12 @@ import java.util.*
 import org.threeten.bp.Duration
 import org.threeten.bp.Instant
 import yuyu.itplacenet.R
+import java.text.SimpleDateFormat
 
 class DateHelper( private val context: Context ) {
 
     private val timezone = TimeZone.getTimeZone("UTC")
+    private val locale = Locale.ENGLISH
 
     private fun getMoment() : Calendar {
         return Calendar.getInstance(this.timezone)
@@ -25,6 +27,10 @@ class DateHelper( private val context: Context ) {
         return moment.timeInMillis
     }
 
+    fun getDateFormat( format: String ) : String {
+        return SimpleDateFormat(format, this.locale).format(Date())
+    }
+
     // Приблизительная разница в датах
     fun diffString( date1: Long?, date2: Long? = null ) : String {
 
@@ -39,7 +45,7 @@ class DateHelper( private val context: Context ) {
 
         val d = diff.toDays()
         val h = diff.toHours() - d*24
-        val m = diff.toString().substringAfter("H").substringBefore("M")
+        val m = diff.toString().substringAfter("PT").substringAfter("H").substringBefore("M")
 
         var diffStr = ""
         if( d > 0 )    diffStr += context.getString(R.string.days,    d.toString()) + " "

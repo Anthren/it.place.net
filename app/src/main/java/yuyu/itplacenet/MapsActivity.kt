@@ -3,6 +3,7 @@ package yuyu.itplacenet
 import android.annotation.SuppressLint
 import android.content.IntentSender
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.location.Location
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -29,6 +30,7 @@ class MapsActivity : AppCompatActivity(),
                         OnMapReadyCallback,
                         GoogleApiClient.ConnectionCallbacks {
 
+    private lateinit var mapFragment: SupportMapFragment
     private lateinit var googleApiClient: GoogleApiClient
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
@@ -42,7 +44,7 @@ class MapsActivity : AppCompatActivity(),
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
 
-        val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
         googleApiClient = GoogleApiClient.Builder(this)
@@ -93,7 +95,7 @@ class MapsActivity : AppCompatActivity(),
     // Карта
 
     override fun onMapReady(googleMap: GoogleMap) {
-        mapHelper.setGoogleMap(googleMap)
+        mapHelper.setMap(googleMap)
 
         plus.setOnClickListener {
             mapHelper.zoomIn()
@@ -194,14 +196,13 @@ class MapsActivity : AppCompatActivity(),
     private fun startDisplayFriendsPosition() {
         val changedCallback = { id: String,
                                 name: String,
-                                photo: String?,
+                                photo: Bitmap,
                                 lat: Double?,
                                 lng: Double?,
                                 lastUpdate: String ->
             if( lat != null && lng != null ) {
                 val position = LatLng(lat, lng)
-                mapHelper.setFriendMarker(id, name, position, lastUpdate)
-                mapHelper.changeFriendMarkerIcon(id, photo)
+                mapHelper.setFriendMarker(id, name, position, lastUpdate, photo)
             }
         }
         val removedCallback = { id: String ->

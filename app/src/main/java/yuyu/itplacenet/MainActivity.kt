@@ -58,4 +58,8 @@ class MainActivity : AppCompatActivity() {
         startActivity( Intent(this, ProfileEditActivity::class.java) )
     }
 
+    private fun gotoMaps() {
+        startActivity( Intent(this, MapsActivity::class.java) )
+    }
+
 }

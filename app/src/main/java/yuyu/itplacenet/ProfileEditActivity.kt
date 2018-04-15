@@ -99,13 +99,10 @@ class ProfileEditActivity : AppCompatActivity() {
     }
 
     private fun updateUserPhotoView( user: User ) {
-        var photoBitmap = userHelper.loadPhotoFromBase64(user.photo)
-        var showBlurBg = true
-        if( photoBitmap == null ) {
-            photoBitmap = userHelper.loadDefaultPhoto()
-            showBlurBg = false
+        val photoBitmap = userHelper.loadPhotoFromBase64(user.photo)
+        if( photoBitmap != null ) {
+            setUserPhotoToView(photoBitmap)
         }
-        setUserPhotoToView(photoBitmap, showBlurBg)
     }
 
     /* Сохранение данных */
@@ -297,11 +294,11 @@ class ProfileEditActivity : AppCompatActivity() {
     }
 
     private fun setUserPhotoToView(photoBitmap: Bitmap, showBlurBg: Boolean = true) {
-        profile_photo.setImageBitmap( photoBitmap )
-        if( showBlurBg ) profile_photo_bg.setImageBitmap( imageHelper.blurImage(photoBitmap) )
+        profile_photo.setImageBitmap(photoBitmap)
+        if( showBlurBg ) profile_photo_bg.setImageBitmap(imageHelper.blurImage(photoBitmap))
     }
 
-    private fun saveUserPhotoToDB( photoBitmap: Bitmap ) {
+    private fun saveUserPhotoToDB(photoBitmap: Bitmap) {
         val photoString = imageHelper.bitmapToBase64(photoBitmap)
         userHelper.savePhoto(photoString)
     }

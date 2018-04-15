@@ -1,6 +1,5 @@
 package yuyu.itplacenet.helpers
 
-import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -12,16 +11,15 @@ import android.provider.MediaStore
 import android.support.v4.content.FileProvider
 import android.util.Base64
 import android.widget.ImageView
-import java.text.SimpleDateFormat
-import java.util.*
 import java.io.*
 import yuyu.itplacenet.BuildConfig
-import yuyu.itplacenet.utils.BlurBuilder
+import android.graphics.Bitmap
 
 
 class ImageHelper(private val context: Context) {
 
     private val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+    private val appStorageDir = Environment.getExternalStorageState()
     private val imagePrefix = "JPEG_"
     private val imageSuffix = ".jpg"
 
@@ -29,6 +27,8 @@ class ImageHelper(private val context: Context) {
     fun loadFromRes(id: Int) : Bitmap {
         return BitmapFactory.decodeResource(context.resources, id)
     }
+
+    /* Интенты */
 
     // Создаем интент галереи
     fun createGalleryIntent() : Intent {
@@ -52,13 +52,14 @@ class ImageHelper(private val context: Context) {
         return imageUri
     }
 
+    /* Файлы изображений */
+
     // Создаем временный файл
-    @SuppressLint("SimpleDateFormat")
     @Throws(IOException::class)
     private fun createTempImageFile(): File {
-        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+        val timeStamp = DateHelper(context).getDateFormat("yyyyMMdd_HHmmss")
         val imageFileName = this.imagePrefix + timeStamp + "_"
-        val image = File.createTempFile( imageFileName,imageSuffix, this.storageDir )
+        val image = File.createTempFile( imageFileName, imageSuffix, this.storageDir )
         val currentPhotoPath = image.absolutePath
 
         val values = ContentValues().apply {
@@ -87,6 +88,8 @@ class ImageHelper(private val context: Context) {
         context.sendBroadcast(mediaScanIntent)
     }
 
+    /* Загрузка картинки из приложений */
+
     // Загружаем картинку из галереи
     fun loadPhotoFromGallery(intent: Intent) : Uri {
         return intent.data
@@ -102,13 +105,14 @@ class ImageHelper(private val context: Context) {
         return Uri.parse(photoUri)
     }
 
-    // Сжимаем картинку под размер поля
+    /* Изменение размера */
 
+    // Сжимаем картинку под размер поля
     fun scale(imageView: ImageView, imageUri: Uri?, imageBitmap: Bitmap? = null) : Bitmap? {
         var photoBitmap: Bitmap? = null
 
         if( imageUri != null ) {
-            photoBitmap = scaleImage(imageView, imageUri)
+            photoBitmap = scaleImage(imageUri, imageView.width, imageView.height)
         } else if( imageBitmap != null ) {
             photoBitmap = scaleBitmap(imageBitmap, imageView.width, imageView.height)
         }
@@ -116,7 +120,7 @@ class ImageHelper(private val context: Context) {
         return photoBitmap
     }
 
-    private fun scaleImage(imageView: ImageView, imageUri: Uri) : Bitmap {
+    private fun scaleImage(imageUri: Uri, targetW: Int, targetH: Int) : Bitmap {
         val bmOptions = BitmapFactory.Options()
 
         val decodeImageStream = context.contentResolver.openInputStream(imageUri)
@@ -126,8 +130,6 @@ class ImageHelper(private val context: Context) {
 
         val photoW = bmOptions.outWidth
         val photoH = bmOptions.outHeight
-        val targetW = imageView.width
-        val targetH = imageView.height
         val scaleFactor = calculateScaleFactor(photoW, photoH, targetW, targetH)
 
         val resultImageSteam = context.contentResolver.openInputStream(imageUri)
@@ -139,7 +141,7 @@ class ImageHelper(private val context: Context) {
         return imageBitmap
     }
 
-    private fun scaleBitmap(imageBitmap: Bitmap, targetW: Int, targetH: Int) : Bitmap {
+    fun scaleBitmap(imageBitmap: Bitmap, targetW: Int, targetH: Int) : Bitmap {
         return Bitmap.createScaledBitmap(imageBitmap, targetW, targetH, true)
     }
 
@@ -161,7 +163,8 @@ class ImageHelper(private val context: Context) {
         return BlurBuilder(context).blur(imageBitmap)
     }
 
-    // Кодировка
+    /* Кодировка */
+
     fun bitmapToBase64(bitmap: Bitmap): String {
         val byteArrayOutputStream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
@@ -173,6 +176,8 @@ class ImageHelper(private val context: Context) {
         val imageAsBytes = Base64.decode(b64.toByteArray(), Base64.DEFAULT)
         return BitmapFactory.decodeByteArray(imageAsBytes, 0, imageAsBytes.size)
     }
+
+    /* Рисование на канве */
 
     // Склейка изображений
     fun glue(bmp1: Bitmap, bmp1Options: Map<String,Int>?, bmp2: Bitmap, bmp2Options: Map<String,Int>?) : Bitmap {
@@ -198,28 +203,32 @@ class ImageHelper(private val context: Context) {
     }
 
     // Вписать в круг
-    fun roundWithWhiteBorder(sourceBitmap: Bitmap, size: Int, borderWidth: Int) : Bitmap {
+    fun fitIntoCircleWithBoard(sourceBitmap: Bitmap, size: Int, borderWidth: Int, borderColor: Int = Color.WHITE) : Bitmap {
         val fullSize = size + borderWidth * 2
         val halfSize = fullSize.toFloat() / 2f
         val borderW = borderWidth.toFloat()
         val radius = halfSize - borderW / 2
 
+        val scaledBitmap = if( sourceBitmap.width > size || sourceBitmap.height > size ) {
+            this.scaleBitmap(sourceBitmap, fullSize, fullSize)
+        } else {
+            sourceBitmap
+        }
+
         val canvasBitmap = Bitmap.createBitmap(fullSize, fullSize, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(canvasBitmap)
-
-        val scaledBitmap = this.scaleBitmap(sourceBitmap, fullSize, fullSize)
-        sourceBitmap.recycle()
 
         val photoPaint = Paint()
             photoPaint.shader = BitmapShader(scaledBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
             photoPaint.isAntiAlias = true
         canvas.drawCircle(halfSize, halfSize, radius, photoPaint)
+        scaledBitmap.recycle()
 
         if (borderWidth > 0) {
             val borderPaint = Paint()
                 borderPaint.style = Paint.Style.STROKE
                 borderPaint.strokeWidth = borderW
-                borderPaint.color = Color.WHITE
+                borderPaint.color = borderColor
                 borderPaint.isAntiAlias = true
             canvas.drawCircle(halfSize, halfSize, radius, borderPaint)
         }

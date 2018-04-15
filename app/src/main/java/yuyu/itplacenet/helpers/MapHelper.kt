@@ -1,42 +1,57 @@
 package yuyu.itplacenet.helpers
 
 import android.app.Activity
+import android.graphics.Bitmap
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
+import com.google.maps.android.clustering.Cluster
+import com.google.maps.android.clustering.ClusterManager
+import com.google.maps.android.clustering.view.DefaultClusterRenderer
+import java.util.ArrayList
 import yuyu.itplacenet.R
+import yuyu.itplacenet.models.FriendItem
+import yuyu.itplacenet.ui.FriendClusterIconBuilder
+import yuyu.itplacenet.ui.FriendMarkerIconBuilder
 import yuyu.itplacenet.utils.getSize
 
-class MapHelper(private val activity: Activity) {
+
+class MapHelper(private val activity: Activity) :
+            ClusterManager.OnClusterItemClickListener<FriendItem>,
+            ClusterManager.OnClusterItemInfoWindowClickListener<FriendItem> {
 
     private lateinit var googleMap: GoogleMap
     private lateinit var myMarker: Marker
-    private var friendsMarkers = HashMap<String,Marker>()
+    private lateinit var clusterManager: ClusterManager<FriendItem>
 
-    private var zoomLevel = 10f
+    private var friendsItems = HashMap<String,FriendItem>()
+    private var friendsItemsIds = HashMap<String,String>()
+
+    private var zoomLevel = 11f
     private val locationUpdateInterval: Long = 10000
     private val fastestLocationUpdateInterval: Long = locationUpdateInterval / 2
 
     // Карта
 
-    fun setGoogleMap( gMap: GoogleMap ) {
+    fun setMap( gMap: GoogleMap ) {
         googleMap = gMap
-        //googleMap.isMyLocationEnabled = true
-        //googleMap.uiSettings.isMyLocationButtonEnabled = false
+        googleMap.uiSettings.isMapToolbarEnabled = false
+
+        this.setClusterManager()
     }
 
     // Маркеры
 
     private fun addMyMarker( position: LatLng ) {
         myMarker = googleMap.addMarker(MarkerOptions()
-                .position(position)
-                .title(activity.getString(R.string.my_marker))
-                .snippet(position.toString())
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.myself)))
+                                .position(position)
+                                .title(activity.getString(R.string.my_marker))
+                                .snippet("${position.latitude} ${position.longitude}")
+                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.myself)))
     }
 
-    fun setMyMarker(position: LatLng ) {
+    fun setMyMarker( position: LatLng ) {
         if( ::googleMap.isInitialized ) {
             if (!::myMarker.isInitialized) {
                 this.addMyMarker(position)
@@ -48,76 +63,120 @@ class MapHelper(private val activity: Activity) {
         }
     }
 
-    private fun getFriendSnippet( lastUpdate: String ) : String {
-        return activity.getString(R.string.was_here, lastUpdate)
+    private fun addFriendMarker( id: String, name: String, position: LatLng, snippet: String, photo: Bitmap ) {
+        friendsItems[id] = FriendItem(id, position, name, snippet, photo)
+        clusterManager.addItem(friendsItems[id])
+        clusterManager.cluster()
     }
 
-    private fun addFriendMarker( id: String, name: String, position: LatLng, lastUpdate: String ) {
-        friendsMarkers[id] = googleMap.addMarker(MarkerOptions()
-                .position(position)
-                .title(name)
-                .snippet(this.getFriendSnippet(lastUpdate)))
-    }
-
-    fun setFriendMarker( id: String, name: String, position: LatLng, lastUpdate: String ) {
+    fun setFriendMarker( id: String, name: String, position: LatLng, lastUpdate: String, photo: Bitmap ) {
         if( ::googleMap.isInitialized ) {
-            if (friendsMarkers.containsKey(id)) {
-                friendsMarkers.getValue(id).position = position
-                friendsMarkers.getValue(id).snippet = this.getFriendSnippet(lastUpdate)
+            if( friendsItems.containsKey(id) ) {
+                /*clusterManager.markerCollection.markers.forEach{ marker ->
+                    if( marker.id == friendsItemsIds[id] ) {
+                        if (marker.position != position)   marker.position = position
+                        if (marker.title    != name)       marker.title    = name
+                        if (marker.snippet  != lastUpdate) marker.snippet  = lastUpdate
+
+                        val icon = this.createFriendMarkerIcon(photo)
+                        marker.setIcon(icon)
+
+                        friendsItems[id] = FriendItem(id, position, name, lastUpdate, photo)
+                    }
+                }
+                clusterManager.cluster()
+                */
+                this.removeFriendMarker(id)
+                this.addFriendMarker(id, name, position, lastUpdate, photo)
             } else {
-                this.addFriendMarker(id, name, position, lastUpdate)
+                this.addFriendMarker(id, name, position, lastUpdate, photo)
             }
         }
     }
 
-    fun changeFriendMarkerIcon(id: String, userPhoto: String?) {
-        if( ::googleMap.isInitialized ) {
-            if (friendsMarkers.containsKey(id) && userPhoto != null) {
-                friendsMarkers.getValue(id).setIcon(this.createFriendIcon(userPhoto))
-                friendsMarkers.getValue(id).setAnchor(this.getFriendAnchorCenter(), 1f)
+    fun removeFriendMarker( id: String ) {
+        if( ::googleMap.isInitialized && friendsItems.containsKey(id) ) {
+            clusterManager.removeItem(friendsItems[id])
+            clusterManager.cluster()
+            friendsItems.remove(id)
+            friendsItemsIds.remove(id)
+        }
+    }
+
+    // Marker Options
+
+    private fun createFriendMarkerIcon( userPhoto: Bitmap ) : BitmapDescriptor {
+        val icon = FriendMarkerIconBuilder(activity, userPhoto).build()
+        return BitmapDescriptorFactory.fromBitmap(icon)
+    }
+
+    private fun createFriendClusterIcon( userPhotos: ArrayList<Bitmap> ) : BitmapDescriptor {
+        val icon = FriendClusterIconBuilder(activity, userPhotos).build()
+        return BitmapDescriptorFactory.fromBitmap(icon)
+    }
+
+    private fun getFriendAnchorU() : Float {
+        val markerWidth = activity.getSize(R.dimen.map_marker_width).toFloat()
+        val commonWidth = markerWidth +
+                          activity.getSize(R.dimen.map_marker_margin_right) +
+                          activity.getSize(R.dimen.map_photo_size)
+
+        return markerWidth.div(2).div(commonWidth)
+    }
+    private fun getFriendAnchorV() : Float {
+        val markerHeight = activity.getSize(R.dimen.map_marker_margin_top) +
+                           activity.getSize(R.dimen.map_marker_anchor_v)
+        val commonHeight = activity.getSize(R.dimen.map_photo_size)
+
+        return markerHeight.toFloat() / commonHeight.toFloat()
+    }
+
+    // Кластеризация маркеров
+
+    private fun setClusterManager() {
+        clusterManager = ClusterManager(activity, googleMap)
+        clusterManager.renderer = this.PersonRenderer()
+        googleMap.setOnCameraIdleListener(clusterManager)
+        googleMap.setOnMarkerClickListener(clusterManager)
+        googleMap.setOnInfoWindowClickListener(clusterManager)
+        clusterManager.setOnClusterItemClickListener(this)
+        clusterManager.setOnClusterItemInfoWindowClickListener(this)
+    }
+
+    inner class PersonRenderer : DefaultClusterRenderer<FriendItem>(activity.applicationContext, googleMap, clusterManager) {
+        init {
+            this.minClusterSize = 1
+        }
+
+        override fun onBeforeClusterItemRendered(clusterItem: FriendItem, markerOptions: MarkerOptions) {
+            markerOptions.title(clusterItem.name)
+                         .snippet(clusterItem.snippet)
+                         .icon(createFriendMarkerIcon(clusterItem.photo))
+                         .anchor(getFriendAnchorU(), getFriendAnchorV())
+        }
+
+        override fun onBeforeClusterRendered(cluster: Cluster<FriendItem>, markerOptions: MarkerOptions) {
+            val profilePhotos = ArrayList<Bitmap>(cluster.size)
+            cluster.items.forEach {
+                profilePhotos.add(it.photo)
             }
+            markerOptions.icon(createFriendClusterIcon(profilePhotos))
+                         .anchor(getFriendAnchorU(), getFriendAnchorV())
+        }
+
+        override fun onClusterItemRendered(clusterItem: FriendItem, marker: Marker) {
+            super.onClusterItemRendered(clusterItem, marker)
+            friendsItemsIds[clusterItem.id] = marker.id
         }
     }
 
-    fun removeFriendMarker(id: String) {
-        if( ::googleMap.isInitialized ) {
-            friendsMarkers.getValue(id).remove()
-            friendsMarkers.remove(id)
-        }
+    override fun onClusterItemClick(item: FriendItem): Boolean {
+        // показать polyline
+        return false
     }
 
-    private fun createFriendIcon(userPhotoStr: String) : BitmapDescriptor {
-        val imageHelper = ImageHelper(activity)
-        val userHelper = UserHelper(activity)
-        val photoSize = activity.getSize(R.dimen.map_photo_size)
-        val borderWidth = activity.getSize(R.dimen.map_photo_border_size)
-
-        val pinImage = imageHelper.loadFromRes(R.drawable.pin)
-
-        var userPhoto = userHelper.loadPhotoFromBase64(userPhotoStr,true)
-            userPhoto = imageHelper.roundWithWhiteBorder(userPhoto!!, photoSize, borderWidth)
-
-        val pinOptions = mapOf(
-                "margin_top"    to activity.getSize(R.dimen.map_marker_margin_top),
-                "margin_bottom" to activity.getSize(R.dimen.map_marker_margin_bottom),
-                "margin_right"  to activity.getSize(R.dimen.map_marker_margin_right)
-        )
-        val markerIcon = imageHelper.glue(
-                bmp1 = pinImage,  bmp1Options = pinOptions,
-                bmp2 = userPhoto, bmp2Options = null
-        )
-        return BitmapDescriptorFactory.fromBitmap(markerIcon)
-    }
-
-    private fun getFriendAnchorCenter() : Float {
-        val anchorCenter =  activity.getSize(R.dimen.map_marker_width).div(2) /
-                            (
-                                activity.getSize(R.dimen.map_marker_width) +
-                                activity.getSize(R.dimen.map_marker_margin_right) +
-                                activity.getSize(R.dimen.map_photo_size) +
-                                activity.getSize(R.dimen.map_photo_border_size).times(2)
-                            )
-        return anchorCenter.toFloat()
+    override fun onClusterItemInfoWindowClick(item: FriendItem) {
+        // перейти к чату
     }
 
     // Камера
@@ -149,3 +208,4 @@ class MapHelper(private val activity: Activity) {
     }
 
 }
+

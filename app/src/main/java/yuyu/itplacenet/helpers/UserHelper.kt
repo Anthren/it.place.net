@@ -149,6 +149,7 @@ class UserHelper(
     }
 
     // Фотография
+
     fun loadPhotoFromBase64( photoStr: String?, loadDefault: Boolean = false ) : Bitmap? {
         return when {
             photoStr != null && photoStr != "" -> imageHelper.base64ToBitmap(photoStr)
@@ -229,7 +230,7 @@ class UserHelper(
     // Друзья
 
     fun startFriendsPositionListener(
-            changedCallback: ((String,String,String?,Double?,Double?,String) -> Unit)? = null,
+            changedCallback: ((String,String,Bitmap,Double?,Double?,String) -> Unit)? = null,
             removedCallback: ((String) -> Unit)? = null
     ) {
         val curUserId = userId
@@ -238,10 +239,16 @@ class UserHelper(
             val cc = { id: String, user: User ->
                 if( changedCallback != null && id != curUserId ) {
                     val name = user.name ?: ""
-                    val photo = user.photo
                     val latitude  = user.latitude
                     val longitude = user.longitude
-                    val lastUpdate = dateHelper.diffString(user.lastUpdate)
+                    val lastUpdate = context.getString(R.string.was_here, dateHelper.diffString(user.lastUpdate))
+
+                    val photo = imageHelper.scaleBitmap(
+                            this.loadPhotoFromBase64(user.photo,true)!!,
+                            context.getSize(R.dimen.map_photo_size),
+                            context.getSize(R.dimen.map_photo_size)
+                    )
+
                     changedCallback(id, name, photo, latitude, longitude, lastUpdate)
                 }
             }
@@ -254,6 +261,5 @@ class UserHelper(
     fun stopFriendsPositionListener() {
         friendsListener.remove()
     }
-
 
 }

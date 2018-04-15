@@ -1,4 +1,4 @@
-package yuyu.itplacenet.utils
+package yuyu.itplacenet.helpers
 
 import android.content.Context
 import android.graphics.Bitmap

@@ -41,12 +41,11 @@
                     android:layout_alignParentTop="true"
                     android:layout_centerHorizontal="true"
                     android:layout_marginTop="@dimen/small_margin"
+                    android:background="@drawable/no_photo"
                     android:scaleType="centerCrop"
                     app:riv_corner_radius="30dip"
                     app:riv_mutate_background="true"
-                    app:riv_oval="true"
-                    tools:background="@drawable/no_photo"
-                    />
+                    app:riv_oval="true" />
 
                 <TextView
                     android:id="@+id/user_name_text"
