@@ -8,6 +8,7 @@ import android.widget.Toast
 import ru.tinkoff.decoro.MaskImpl
 import ru.tinkoff.decoro.slots.PredefinedSlots
 import ru.tinkoff.decoro.watchers.MaskFormatWatcher
+import java.security.MessageDigest
 
 
 @JvmOverloads
@@ -34,4 +35,15 @@ fun EditText.makePhoneMask() {
             MaskImpl.createTerminated(PredefinedSlots.RUS_PHONE_NUMBER)
     )
     formatWatcher.installOn(this)
+}
+
+fun md5(s: String): String {
+    val digest = MessageDigest.getInstance("MD5")
+    digest.update(s.toByteArray())
+    val messageDigest = digest.digest()
+
+    val hexString = StringBuffer()
+    messageDigest.forEach { hexString.append(Integer.toHexString(0xFF and it.toInt())) }
+
+    return hexString.toString()
 }

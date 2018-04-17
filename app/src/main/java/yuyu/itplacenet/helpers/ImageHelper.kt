@@ -18,15 +18,11 @@ import android.graphics.Bitmap
 
 class ImageHelper(private val context: Context) {
 
-    private val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-    private val appStorageDir = Environment.getExternalStorageState()
+    private val publicStorageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+
     private val imagePrefix = "JPEG_"
     private val imageSuffix = ".jpg"
-
-    // Загрузка из ресурсов
-    fun loadFromRes(id: Int) : Bitmap {
-        return BitmapFactory.decodeResource(context.resources, id)
-    }
+    private val imageMimeType = "image/jpeg"
 
     /* Интенты */
 
@@ -44,9 +40,9 @@ class ImageHelper(private val context: Context) {
         return cameraIntent
     }
 
-    // Создаем файл фотографии с камеры
+    // Создаем файл фотографии и добавляем его в галерею
     fun createImageFile() : Uri {
-        val imageFile = this.createTempImageFile()
+        val imageFile = this.createCameraPhotoFile()
         val imageUri = this.getFileUri(imageFile)
         this.addImageToGallery(imageUri)
         return imageUri
@@ -54,25 +50,44 @@ class ImageHelper(private val context: Context) {
 
     /* Файлы изображений */
 
-    // Создаем временный файл
+    private fun getPrivateStoragePath() : File {
+        return when {
+            Environment.isExternalStorageEmulated() -> context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+            else -> File(context.filesDir.canonicalPath+"/photos/")
+        }
+    }
+
+    // Создаем файл
+    private fun createFile( path: File, fileName: String? = null ) : File {
+        if( ! path.exists() ) path.mkdirs()
+
+        val file: File
+        if( fileName != null ) {
+            file = File(path, fileName)
+            file.createNewFile()
+        } else {
+            val imageFileName = imagePrefix + DateHelper(context).getDateFormat("yyyyMMdd_HHmmss") + "_"
+            file = File.createTempFile( imageFileName, imageSuffix, path )
+        }
+        return file
+    }
+
+    // Создаем файл фотографии
     @Throws(IOException::class)
-    private fun createTempImageFile(): File {
-        val timeStamp = DateHelper(context).getDateFormat("yyyyMMdd_HHmmss")
-        val imageFileName = this.imagePrefix + timeStamp + "_"
-        val image = File.createTempFile( imageFileName, imageSuffix, this.storageDir )
-        val currentPhotoPath = image.absolutePath
+    private fun createCameraPhotoFile(): File {
+        val image = this.createFile( publicStorageDir )
 
         val values = ContentValues().apply {
-            put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
-            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-            put(MediaStore.MediaColumns.DATA, currentPhotoPath)
+            put(MediaStore.Images.Media.DATE_TAKEN, DateHelper(context).getTimeInMillis())
+            put(MediaStore.Images.Media.MIME_TYPE, imageMimeType)
+            put(MediaStore.MediaColumns.DATA, image.absolutePath)
         }
         context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
 
         return image
     }
 
-    // получаем URI файла
+    // Получаем URI файла
     private fun getFileUri(file: File) : Uri {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID+".fileprovider", file)
@@ -86,6 +101,57 @@ class ImageHelper(private val context: Context) {
         val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)
         mediaScanIntent.data = imageUri
         context.sendBroadcast(mediaScanIntent)
+    }
+
+    // Проверка существования файла
+    private fun isFileExist( path: File, fileName: String ) : Boolean {
+        val file = File(path.toString(), fileName)
+        if( file.exists() ) {
+            return true
+        }
+        return false
+    }
+
+    // Сохранение Bitmap в файл
+    private fun saveBitmapToFile( bitmap: Bitmap, path: File, fileName: String? = null ) : File {
+        val file = this.createFile( path, fileName )
+
+        try {
+            val fOut = FileOutputStream(file)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fOut)
+            fOut.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        return file
+    }
+
+    // Проверка существования изображения во внутренней папке приложения
+    fun isInternalImageExist( fileName: String ) : Boolean {
+        return this.isFileExist(this.getPrivateStoragePath(), fileName + imageSuffix)
+    }
+
+    // Сохранение изображения во внутренней папке приложения
+    fun saveInternalImage( bitmap: Bitmap, fileName: String ) : String {
+        return this.saveBitmapToFile(bitmap, this.getPrivateStoragePath(), fileName + imageSuffix).path
+    }
+
+    /* Загрузка изображения из файлов */
+
+    // Загрузка из ресурсов
+    fun loadFromRes(id: Int) : Bitmap {
+        return BitmapFactory.decodeResource(context.resources, id)
+    }
+
+    // Чтение изображения из файла по пути
+    private fun loadBitmapFromPath( path: String ) : Bitmap {
+        return BitmapFactory.decodeFile(path)
+    }
+
+    // Чтение изображения из файла по имени
+    fun loadBitmapFromName( name: String ) : Bitmap {
+        return this.loadBitmapFromPath( this.getPrivateStoragePath().toString() + "/" + name + imageSuffix )
     }
 
     /* Загрузка картинки из приложений */

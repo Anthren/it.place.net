@@ -68,6 +68,5 @@ class DBManager {
                         failureCallback?.invoke(e.toString())
                     }
                 }
-
     }
 }

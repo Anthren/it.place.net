@@ -231,7 +231,7 @@ class UserHelper(
     // Друзья
 
     fun startFriendsPositionListener(
-            changedCallback: ((String,String,Bitmap,Double?,Double?,String) -> Unit)? = null,
+            changedCallback: ((String,String,String,Double?,Double?,String) -> Unit)? = null,
             removedCallback: ((String) -> Unit)? = null
     ) {
         val curUserId = userId
@@ -244,13 +244,18 @@ class UserHelper(
                     val longitude = user.longitude
                     val lastUpdate = context.getString(R.string.was_here, dateHelper.diffString(user.lastUpdate))
 
-                    val photo = imageHelper.scaleBitmap(
-                            this.loadPhotoFromBase64(user.photo,true)!!,
-                            context.getSize(R.dimen.map_photo_size),
-                            context.getSize(R.dimen.map_photo_size)
-                    )
+                    val photoHash = md5(user.photo ?: "")
 
-                    changedCallback(id, name, photo, latitude, longitude, lastUpdate)
+                    if( ! imageHelper.isInternalImageExist(photoHash) ) {
+                        val photoBitmap = imageHelper.scaleBitmap(
+                                this.loadPhotoFromBase64(user.photo,true)!!,
+                                context.getSize(R.dimen.map_photo_size),
+                                context.getSize(R.dimen.map_photo_size)
+                        )
+                        imageHelper.saveInternalImage(photoBitmap, photoHash)
+                    }
+
+                    changedCallback(id, name, photoHash, latitude, longitude, lastUpdate)
                 }
             }
 

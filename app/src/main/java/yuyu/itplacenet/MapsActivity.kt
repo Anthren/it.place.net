@@ -3,7 +3,6 @@ package yuyu.itplacenet
 import android.annotation.SuppressLint
 import android.content.IntentSender
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.location.Location
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -196,7 +195,7 @@ class MapsActivity : AppCompatActivity(),
     private fun startDisplayFriendsPosition() {
         val changedCallback = { id: String,
                                 name: String,
-                                photo: Bitmap,
+                                photo: String,
                                 lat: Double?,
                                 lng: Double?,
                                 lastUpdate: String ->

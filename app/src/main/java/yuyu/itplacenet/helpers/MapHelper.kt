@@ -69,7 +69,7 @@ class MapHelper(private val activity: Activity) :
         clusterManager.cluster()
     }
 
-    fun setFriendMarker( id: String, name: String, position: LatLng, lastUpdate: String, photo: Bitmap ) {
+    fun setFriendMarker( id: String, name: String, position: LatLng, lastUpdate: String, photo: String ) {
         if( ::googleMap.isInitialized ) {
             if( friendsItems.containsKey(id) ) {
                 /*clusterManager.markerCollection.markers.forEach{ marker ->
@@ -87,9 +87,11 @@ class MapHelper(private val activity: Activity) :
                 clusterManager.cluster()
                 */
                 this.removeFriendMarker(id)
-                this.addFriendMarker(id, name, position, lastUpdate, photo)
+                val photoBitmap = ImageHelper(activity).loadBitmapFromName(photo)
+                this.addFriendMarker(id, name, position, lastUpdate, photoBitmap)
             } else {
-                this.addFriendMarker(id, name, position, lastUpdate, photo)
+                val photoBitmap = ImageHelper(activity).loadBitmapFromName(photo)
+                this.addFriendMarker(id, name, position, lastUpdate, photoBitmap)
             }
         }
     }
