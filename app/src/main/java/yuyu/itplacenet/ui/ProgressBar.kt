@@ -33,20 +33,20 @@ class ProgressBar() {
         val shortAnimTime = android.R.integer.config_shortAnimTime.toLong()
 
         setFormVisibility(show)
-        form.animate()
-                .setDuration(shortAnimTime)
-                .alpha((if (show) 0 else 1).toFloat())
-                .setListener(object : AnimatorListenerAdapter() {
+        form?.animate()
+                ?.setDuration(shortAnimTime)
+                ?.alpha((if (show) 0 else 1).toFloat())
+                ?.setListener(object : AnimatorListenerAdapter() {
                     override fun onAnimationEnd(animation: Animator) {
                         setFormVisibility(show)
                     }
                 })
 
         setProgressVisibility(show)
-        progress.animate()
-                .setDuration(shortAnimTime)
-                .alpha((if (show) 1 else 0).toFloat())
-                .setListener(object : AnimatorListenerAdapter() {
+        progress?.animate()
+                ?.setDuration(shortAnimTime)
+                ?.alpha((if (show) 1 else 0).toFloat())
+                ?.setListener(object : AnimatorListenerAdapter() {
                     override fun onAnimationEnd(animation: Animator) {
                         setProgressVisibility(show)
                     }
@@ -59,11 +59,11 @@ class ProgressBar() {
     //    }
 
     private fun setFormVisibility(show: Boolean) {
-        form.visibility = if (show) View.GONE else View.VISIBLE
+        form?.visibility = if (show) View.GONE else View.VISIBLE
     }
 
     private fun setProgressVisibility(show: Boolean) {
-        progress.visibility = if (show) View.VISIBLE else View.GONE
+        progress?.visibility = if (show) View.VISIBLE else View.GONE
     }
 }
 

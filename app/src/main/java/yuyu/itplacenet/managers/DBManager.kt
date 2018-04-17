@@ -10,28 +10,28 @@ class DBManager {
     private val dbUsers = "users"
 
 
-    fun getResultId( documentReference: DocumentReference ) : String {
+    fun getResultId(documentReference: DocumentReference): String {
         return documentReference.id
     }
 
 
-    fun getUserData( userId: String ) : Task<DocumentSnapshot> {
+    fun getUserData(userId: String): Task<DocumentSnapshot> {
         return db.collection(dbUsers).document(userId).get()
     }
 
-    fun parseUserData( documentSnapshot: DocumentSnapshot ) : User {
+    fun parseUserData(documentSnapshot: DocumentSnapshot): User? {
         return documentSnapshot.toObject(User::class.java)
     }
 
-    fun setUserData( userId: String, user: User ) : Task<Void> {
+    fun setUserData(userId: String, user: User): Task<Void> {
         return db.collection(dbUsers).document(userId).set(user, SetOptions.merge())
     }
 
-    fun addUser( user: User ) : Task<DocumentReference> {
+    fun addUser(user: User): Task<DocumentReference> {
         return db.collection(dbUsers).add(user)
     }
 
-    fun updateUserData( userId: String, arr: Map<String,Any> ) : Task<Void> {
+    fun updateUserData(userId: String, arr: Map<String, Any>): Task<Void> {
         return db.collection(dbUsers).document(userId).update(arr)
     }
 
@@ -43,31 +43,31 @@ class DBManager {
             failureCallback:  ((String) -> Unit)? = null
     ) : ListenerRegistration {
         return db.collection(dbUsers)
-                 .addSnapshotListener({snapshots: QuerySnapshot, e: FirebaseFirestoreException? ->
-                        if (e == null) {
-                            var user: User
-                            var userId: String
+                .addSnapshotListener { snapshots: QuerySnapshot?, e: FirebaseFirestoreException? ->
+                    if (e == null) {
+                        var user: User
+                        var userId: String
 
-                            for ( dc in snapshots.documentChanges) {
-                                user = dc.document.toObject(User::class.java)
-                                userId = dc.document.id
+                        snapshots?.documentChanges?.forEach {
+                            user = it.document.toObject(User::class.java)
+                            userId = it.document.id
 
-                                when( dc.type ) {
-                                    DocumentChange.Type.ADDED -> {
-                                        addedCallback?.invoke(userId, user)
-                                    }
-                                    DocumentChange.Type.MODIFIED -> {
-                                        modifiedCallback?.invoke(userId, user)
-                                    }
-                                    DocumentChange.Type.REMOVED -> {
-                                        removedCallback?.invoke(userId)
-                                    }
+                            when( it.type ) {
+                                DocumentChange.Type.ADDED -> {
+                                    addedCallback?.invoke(userId, user)
+                                }
+                                DocumentChange.Type.MODIFIED -> {
+                                    modifiedCallback?.invoke(userId, user)
+                                }
+                                DocumentChange.Type.REMOVED -> {
+                                    removedCallback?.invoke(userId)
                                 }
                             }
-                        } else {
-                            failureCallback?.invoke(e.toString())
                         }
-        })
-    }
+                    } else {
+                        failureCallback?.invoke(e.toString())
+                    }
+                }
 
+    }
 }

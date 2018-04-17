@@ -57,17 +57,18 @@ class UserHelper(
                                 failureCallback: (() -> Unit)? = null
     ) {
         val id = userId
-        var user: User
 
         if( id != null ) {
             db.getUserData(id)
                     .addOnSuccessListener({
                         if( it.exists() ) {
-                            user = db.parseUserData(it)
-                            existCallback?.invoke(user)
-                        } else {
-                            notExistCallback?.invoke()
+                            val user = db.parseUserData(it)
+                            if (user != null) {
+                                existCallback?.invoke(user)
+                                return@addOnSuccessListener
+                            }
                         }
+                        notExistCallback?.invoke()
                     })
                     .addOnFailureListener({ e: Exception ->
                         this.msgLoadError(e)
