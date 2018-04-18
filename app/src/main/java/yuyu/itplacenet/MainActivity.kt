@@ -20,6 +20,8 @@ class MainActivity : AppCompatActivity() {
             gotoLogin()
             return
         }
+
+        gotoMaps()
     }
 
     override fun onStart() {

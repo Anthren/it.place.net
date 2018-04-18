@@ -5,10 +5,11 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.clustering.ClusterItem
 
 class FriendItem(val id: String,
-                 var latLng: LatLng,
-                 var name: String,
-                 var snippet: String,
-                 var photo: Bitmap)
+                 val latLng: LatLng,
+                 val name: String,
+                 val snippet: String,
+                 val photo: Bitmap,
+                 val photoHash: String)
 : ClusterItem {
 
     override fun getPosition(): LatLng {

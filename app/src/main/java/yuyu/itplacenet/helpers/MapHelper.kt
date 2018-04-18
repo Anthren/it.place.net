@@ -63,36 +63,40 @@ class MapHelper(private val activity: Activity) :
         }
     }
 
-    private fun addFriendMarker( id: String, name: String, position: LatLng, snippet: String, photo: Bitmap ) {
-        friendsItems[id] = FriendItem(id, position, name, snippet, photo)
+    private fun addFriendMarker( id: String, name: String, position: LatLng, snippet: String, photo: Bitmap, photoHash: String ) {
+        friendsItems[id] = FriendItem(id, position, name, snippet, photo, photoHash)
         clusterManager.addItem(friendsItems[id])
         clusterManager.cluster()
     }
 
-    fun setFriendMarker( id: String, name: String, position: LatLng, lastUpdate: String, photo: String ) {
+    fun setFriendMarker( id: String, name: String, position: LatLng, lastUpdate: String, photoHash: String ) {
         if( ::googleMap.isInitialized ) {
+            /*// Работает только для отдельных маркеров, не входящих в кластеры
             if( friendsItems.containsKey(id) ) {
-                /*clusterManager.markerCollection.markers.forEach{ marker ->
+                val oldFI = friendsItems.getValue(id)
+                clusterManager.markerCollection.markers.forEach{ marker ->
                     if( marker.id == friendsItemsIds[id] ) {
                         if (marker.position != position)   marker.position = position
                         if (marker.title    != name)       marker.title    = name
                         if (marker.snippet  != lastUpdate) marker.snippet  = lastUpdate
 
-                        val icon = this.createFriendMarkerIcon(photo)
-                        marker.setIcon(icon)
+                        val photoBitmap: Bitmap
+                        if( photoHash != oldFI.photoHash ) {
+                            photoBitmap = ImageHelper(activity).loadBitmapFromName(photoHash)
+                            val icon = this.createFriendMarkerIcon(photoBitmap)
+                            marker.setIcon(icon)
+                        } else {
+                            photoBitmap = oldFI.photo
+                        }
 
-                        friendsItems[id] = FriendItem(id, position, name, lastUpdate, photo)
+                        friendsItems[id] = FriendItem(id, position, name, lastUpdate, photoBitmap, photoHash)
                     }
                 }
                 clusterManager.cluster()
-                */
-                this.removeFriendMarker(id)
-                val photoBitmap = ImageHelper(activity).loadBitmapFromName(photo)
-                this.addFriendMarker(id, name, position, lastUpdate, photoBitmap)
-            } else {
-                val photoBitmap = ImageHelper(activity).loadBitmapFromName(photo)
-                this.addFriendMarker(id, name, position, lastUpdate, photoBitmap)
-            }
+            } else {}*/
+            if( friendsItems.containsKey(id) ) this.removeFriendMarker(id)
+            val photoBitmap = ImageHelper(activity).loadBitmapFromName(photoHash)
+            this.addFriendMarker(id, name, position, lastUpdate, photoBitmap, photoHash)
         }
     }
 
