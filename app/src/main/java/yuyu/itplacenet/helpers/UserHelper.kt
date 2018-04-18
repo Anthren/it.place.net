@@ -7,6 +7,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import yuyu.itplacenet.R
 import yuyu.itplacenet.managers.AuthManager
 import yuyu.itplacenet.managers.DBManager
+import yuyu.itplacenet.models.Coordinates
 import yuyu.itplacenet.models.User
 import yuyu.itplacenet.utils.*
 
@@ -23,7 +24,7 @@ class UserHelper(
 
     private var lastUpdate: Long? = null
     private var lastSelect: Long? = null
-    private val updatePeriod = 10 //In Minutes
+    private val updatePeriod = 5 //In Minutes
 
     private lateinit var friendsListener: ListenerRegistration
 
@@ -35,6 +36,7 @@ class UserHelper(
             }
         }
 
+    /* Сообщения */
 
     private fun msg( text: String ) {
         if( !silentMode ) context.toast(text)
@@ -52,6 +54,7 @@ class UserHelper(
         this.msg(context.getString(R.string.error_user_not_found))
     }
 
+    // Проверяем, существует ли пользователь
     private fun checkUserExist( existCallback: ((User) -> Unit)? = null,
                                 notExistCallback: (() -> Unit)? = null,
                                 failureCallback: (() -> Unit)? = null
@@ -79,6 +82,7 @@ class UserHelper(
         }
     }
 
+    // Добавление пользователя
     private fun addUser( user: User,
                          successCallback: ((User) -> Unit)? = null,
                          failureCallback: (() -> Unit)? = null
@@ -110,6 +114,7 @@ class UserHelper(
         }
     }
 
+    // Обновление полей текущего пользователя
     private fun updateFields( updates: Map<String,Any>,
                               successCallback: (() -> Unit)? = null,
                               failureCallback: (() -> Unit)? = null
@@ -188,8 +193,9 @@ class UserHelper(
         this.updateFields(updates)
     }
 
-    // Местоположение
+    /* Местоположение */
 
+    // Обновление координат пользователя
     fun updateCoordinates(
             latitude: Double,
             longitude: Double
@@ -199,7 +205,7 @@ class UserHelper(
                             longitude: Double
         ) {
             if( lastUpdate ?: 0 < dateHelper.beforeOnMinutes(updatePeriod) ) {
-
+                // Обновляем базу пользователей
                 val moment = dateHelper.getTimeInMillis()
                 lastUpdate = moment
                 lastSelect = moment
@@ -210,6 +216,13 @@ class UserHelper(
                 updates["lastUpdate"] = moment
 
                 this.updateFields(updates)
+
+                // Сохраняем историю перемещений
+                val id = userId
+                if( id != null ) {
+                    val coordinates = Coordinates(id, latitude, longitude, moment)
+                    this.addCoordinates(coordinates)
+                }
             }
         }
 
@@ -226,6 +239,22 @@ class UserHelper(
         } else {
             checkAndUpdate(latitude, longitude)
         }
+    }
+
+    // Добавление координат к истории
+    private fun addCoordinates(coordinates: Coordinates,
+                               successCallback: ((Coordinates) -> Unit)? = null,
+                               failureCallback: (() -> Unit)? = null
+    ) {
+        db.addCoordinates(coordinates)
+                .addOnSuccessListener({
+                    successCallback?.invoke(coordinates)
+                    this.msgSaveDone()
+                })
+                .addOnFailureListener({ e: Exception ->
+                    this.msgSaveError(e)
+                    failureCallback?.invoke()
+                })
     }
 
     // Друзья

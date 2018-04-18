@@ -2,18 +2,21 @@ package yuyu.itplacenet.managers
 
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.*
+import yuyu.itplacenet.models.Coordinates
 import yuyu.itplacenet.models.User
 
 class DBManager {
 
     private val db = FirebaseFirestore.getInstance()
     private val dbUsers = "users"
+    private val dbCoordinates = "coordinates"
 
 
     fun getResultId(documentReference: DocumentReference): String {
         return documentReference.id
     }
 
+    /* Пользователи */
 
     fun getUserData(userId: String): Task<DocumentSnapshot> {
         return db.collection(dbUsers).document(userId).get()
@@ -68,5 +71,11 @@ class DBManager {
                         failureCallback?.invoke(e.toString())
                     }
                 }
+    }
+
+    /* История перемещений */
+
+    fun addCoordinates(coordinates: Coordinates): Task<DocumentReference> {
+        return db.collection(dbCoordinates).add(coordinates)
     }
 }
