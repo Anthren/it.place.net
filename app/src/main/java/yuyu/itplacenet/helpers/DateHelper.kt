@@ -27,6 +27,12 @@ class DateHelper( private val context: Context ) {
         return moment.timeInMillis
     }
 
+    fun beforeOnHours( hours: Int ) : Long {
+        val moment = this.getMoment()
+        moment.add(Calendar.HOUR, -hours)
+        return moment.timeInMillis
+    }
+
     fun getDateFormat( format: String ) : String {
         return SimpleDateFormat(format, this.locale).format(Date())
     }

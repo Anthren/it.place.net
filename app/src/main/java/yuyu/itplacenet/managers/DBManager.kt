@@ -78,4 +78,28 @@ class DBManager {
     fun addCoordinates(coordinates: Coordinates): Task<DocumentReference> {
         return db.collection(dbCoordinates).add(coordinates)
     }
+
+    fun getUserCoordinatesHistory(userId: String,
+                                  lastMoment: Long,
+                                  successCallback: ((List<Coordinates>) -> Unit)? = null,
+                                  failureCallback: ((Exception) -> Unit)? = null
+    ): Task<QuerySnapshot> {
+        return db.collection(dbCoordinates)
+                 .whereEqualTo("user", userId)
+                 .whereGreaterThanOrEqualTo("timestamp", lastMoment)
+                 .orderBy("timestamp", Query.Direction.DESCENDING)
+                 .get()
+                 .addOnSuccessListener{ documentSnapshots: QuerySnapshot ->
+                     val history =  arrayListOf<Coordinates>()
+                     documentSnapshots.documents.forEach{
+                         val coordinate = it.toObject(Coordinates::class.java)
+                         if( coordinate != null ) history.add(coordinate)
+                     }
+                     successCallback?.invoke(history)
+                 }
+                 .addOnFailureListener{ e: Exception ->
+                     failureCallback?.invoke(e)
+                 }
+    }
+
 }

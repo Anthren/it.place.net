@@ -2,6 +2,7 @@ package yuyu.itplacenet.helpers
 
 import android.app.Activity
 import android.graphics.Bitmap
+import android.graphics.Color
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -11,13 +12,19 @@ import com.google.maps.android.clustering.ClusterManager
 import com.google.maps.android.clustering.view.DefaultClusterRenderer
 import java.util.ArrayList
 import yuyu.itplacenet.R
+import yuyu.itplacenet.models.Coordinates
 import yuyu.itplacenet.models.FriendItem
 import yuyu.itplacenet.ui.FriendClusterIconBuilder
 import yuyu.itplacenet.ui.FriendMarkerIconBuilder
 import yuyu.itplacenet.utils.getSize
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.PolylineOptions
 
 
 class MapHelper(private val activity: Activity) :
+            GoogleMap.OnMarkerClickListener,
+            GoogleMap.OnMapClickListener,
+            GoogleMap.OnPolylineClickListener,
             ClusterManager.OnClusterItemClickListener<FriendItem>,
             ClusterManager.OnClusterItemInfoWindowClickListener<FriendItem> {
 
@@ -26,7 +33,7 @@ class MapHelper(private val activity: Activity) :
     private lateinit var clusterManager: ClusterManager<FriendItem>
 
     private var friendsItems = HashMap<String,FriendItem>()
-    private var friendsItemsIds = HashMap<String,String>()
+    private var polylines = ArrayList<Polyline>()
 
     private var zoomLevel = 11f
     private val locationUpdateInterval: Long = 10000
@@ -37,6 +44,9 @@ class MapHelper(private val activity: Activity) :
     fun setMap( gMap: GoogleMap ) {
         googleMap = gMap
         googleMap.uiSettings.isMapToolbarEnabled = false
+        googleMap.setOnMarkerClickListener(this)
+        googleMap.setOnMapClickListener(this)
+        googleMap.setOnPolylineClickListener(this)
 
         this.setClusterManager()
     }
@@ -47,8 +57,9 @@ class MapHelper(private val activity: Activity) :
         myMarker = googleMap.addMarker(MarkerOptions()
                                 .position(position)
                                 .title(activity.getString(R.string.my_marker))
-                                .snippet("${position.latitude} ${position.longitude}")
-                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.myself)))
+                                .snippet("${position.latitude}, ${position.longitude}")
+                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.myself))
+                                .anchor(0.5f, 0.36f))
     }
 
     fun setMyMarker( position: LatLng ) {
@@ -75,7 +86,7 @@ class MapHelper(private val activity: Activity) :
             if( friendsItems.containsKey(id) ) {
                 val oldFI = friendsItems.getValue(id)
                 clusterManager.markerCollection.markers.forEach{ marker ->
-                    if( marker.id == friendsItemsIds[id] ) {
+                    if( marker.tag == id ) {
                         if (marker.position != position)   marker.position = position
                         if (marker.title    != name)       marker.title    = name
                         if (marker.snippet  != lastUpdate) marker.snippet  = lastUpdate
@@ -105,7 +116,6 @@ class MapHelper(private val activity: Activity) :
             clusterManager.removeItem(friendsItems[id])
             clusterManager.cluster()
             friendsItems.remove(id)
-            friendsItemsIds.remove(id)
         }
     }
 
@@ -143,8 +153,6 @@ class MapHelper(private val activity: Activity) :
         clusterManager = ClusterManager(activity, googleMap)
         clusterManager.renderer = this.PersonRenderer()
         googleMap.setOnCameraIdleListener(clusterManager)
-        googleMap.setOnMarkerClickListener(clusterManager)
-        googleMap.setOnInfoWindowClickListener(clusterManager)
         clusterManager.setOnClusterItemClickListener(this)
         clusterManager.setOnClusterItemInfoWindowClickListener(this)
     }
@@ -172,12 +180,17 @@ class MapHelper(private val activity: Activity) :
 
         override fun onClusterItemRendered(clusterItem: FriendItem, marker: Marker) {
             super.onClusterItemRendered(clusterItem, marker)
-            friendsItemsIds[clusterItem.id] = marker.id
+            marker.tag = clusterItem.id
+        }
+
+        override fun onClusterRendered(cluster: Cluster<FriendItem>, marker: Marker) {
+            super.onClusterRendered(cluster, marker)
+            marker.tag = -1
         }
     }
 
     override fun onClusterItemClick(item: FriendItem): Boolean {
-        // показать polyline
+        this.drawPolyline(item.id)
         return false
     }
 
@@ -203,6 +216,15 @@ class MapHelper(private val activity: Activity) :
         googleMap.animateCamera(CameraUpdateFactory.zoomOut())
     }
 
+    private fun boundCamera( points: List<LatLng> ) {
+        val builder = LatLngBounds.builder()
+        points.forEach {
+            builder.include(it)
+        }
+        val lineBounds = builder.build()
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(lineBounds, 0))
+    }
+
     // Мое местоположение
 
     fun createLocationRequest() : LocationRequest {
@@ -211,6 +233,63 @@ class MapHelper(private val activity: Activity) :
             fastestInterval = fastestLocationUpdateInterval
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
+    }
+
+    // История перемещений
+
+    private fun clearPolyline() {
+        polylines.forEach(Polyline::remove)
+    }
+
+    override fun onMarkerClick( marker: Marker ): Boolean {
+        this.clearPolyline()
+        this.drawPolyline(marker.tag?.toString())
+        return false
+    }
+
+    override fun onMapClick( p0: LatLng? ) {
+        this.clearPolyline()
+    }
+
+    override fun onPolylineClick( polyline: Polyline ) {
+        boundCamera(polyline.points)
+    }
+
+    private fun drawPolyline( userId: String? = null ): Boolean {
+        val width: Float
+        val zIndex: Float
+        if( userId == null ) {
+            width = 5f
+            zIndex = 5f
+        } else {
+            width = 2f
+            zIndex = 1f
+        }
+
+        val successCallback = { coordinates: List<Coordinates> ->
+            if( coordinates.isNotEmpty() ) {
+                val history = arrayListOf<LatLng>()
+                coordinates.forEach{
+                    val lat = it.latitude
+                    val lng = it.longitude
+                    if( lat != null && lng != null ) {
+                        val position = LatLng(lat, lng)
+                        history.add(position)
+                    }
+                }
+                val polylineOptions = PolylineOptions()
+                        .addAll(history)
+                        .color(Color.BLACK)
+                        .width(width)
+                        .zIndex(zIndex)
+                val line = googleMap.addPolyline(polylineOptions)
+                line.isClickable = true
+                polylines.add( line )
+            }
+        }
+
+        UserHelper(activity).loadLocationHistory(userId, successCallback)
+        return false
     }
 
 }

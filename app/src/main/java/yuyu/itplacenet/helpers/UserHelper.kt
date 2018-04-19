@@ -257,6 +257,30 @@ class UserHelper(
                 })
     }
 
+    // Загрузка истории перемещений пользователя
+    fun loadLocationHistory( userId: String? = null,
+                             successCallback: ((List<Coordinates>) -> Unit)? = null,
+                             failureCallback: (() -> Unit)? = null
+    ) {
+        val id = if( userId == null ) {
+            val curUserId = this.userId
+            (curUserId ?: return)
+        } else {
+            userId
+        }
+        val lastMoment = dateHelper.beforeOnHours(24)
+
+        val sc = { history: List<Coordinates> ->
+            if (successCallback != null) successCallback(history)
+        }
+        val fc = { e: Exception ->
+            this.msgLoadError(e)
+            if (failureCallback != null) failureCallback()
+        }
+
+        db.getUserCoordinatesHistory(id, lastMoment, sc, fc)
+    }
+
     // Друзья
 
     fun startFriendsPositionListener(
