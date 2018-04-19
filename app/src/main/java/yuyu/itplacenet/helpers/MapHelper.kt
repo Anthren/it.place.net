@@ -17,8 +17,7 @@ import yuyu.itplacenet.models.FriendItem
 import yuyu.itplacenet.ui.FriendClusterIconBuilder
 import yuyu.itplacenet.ui.FriendMarkerIconBuilder
 import yuyu.itplacenet.utils.getSize
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.PolylineOptions
+import yuyu.itplacenet.utils.formatNumber
 
 
 class MapHelper(private val activity: Activity) :
@@ -38,6 +37,7 @@ class MapHelper(private val activity: Activity) :
     private var zoomLevel = 11f
     private val locationUpdateInterval: Long = 10000
     private val fastestLocationUpdateInterval: Long = locationUpdateInterval / 2
+    private val coordinateFormat = "#0.000000"
 
     // Карта
 
@@ -54,10 +54,13 @@ class MapHelper(private val activity: Activity) :
     // Маркеры
 
     private fun addMyMarker( position: LatLng ) {
+        val latString = formatNumber(position.latitude,  coordinateFormat)
+        val lngString = formatNumber(position.longitude, coordinateFormat)
+
         myMarker = googleMap.addMarker(MarkerOptions()
                                 .position(position)
                                 .title(activity.getString(R.string.my_marker))
-                                .snippet("${position.latitude}, ${position.longitude}")
+                                .snippet("$latString, $lngString")
                                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.myself))
                                 .anchor(0.5f, 0.36f))
     }

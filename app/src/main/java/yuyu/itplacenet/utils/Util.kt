@@ -9,6 +9,7 @@ import ru.tinkoff.decoro.MaskImpl
 import ru.tinkoff.decoro.slots.PredefinedSlots
 import ru.tinkoff.decoro.watchers.MaskFormatWatcher
 import java.security.MessageDigest
+import java.text.DecimalFormat
 
 
 @JvmOverloads
@@ -46,4 +47,8 @@ fun md5(s: String): String {
     messageDigest.forEach { hexString.append(Integer.toHexString(0xFF and it.toInt())) }
 
     return hexString.toString()
+}
+
+fun formatNumber( number: Double, pattern: String ) : String {
+    return DecimalFormat(pattern).format(number)
 }
