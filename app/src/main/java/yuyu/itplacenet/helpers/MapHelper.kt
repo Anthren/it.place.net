@@ -1,12 +1,17 @@
 package yuyu.itplacenet.helpers
 
+import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.PendingIntent
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.android.gms.tasks.Task
 import com.google.maps.android.clustering.Cluster
 import com.google.maps.android.clustering.ClusterManager
 import com.google.maps.android.clustering.view.DefaultClusterRenderer
@@ -18,6 +23,7 @@ import yuyu.itplacenet.ui.FriendClusterIconBuilder
 import yuyu.itplacenet.ui.FriendMarkerIconBuilder
 import yuyu.itplacenet.utils.getSize
 import yuyu.itplacenet.utils.formatNumber
+import yuyu.itplacenet.utils.toast
 
 
 class MapHelper(private val activity: Activity) :
@@ -25,19 +31,29 @@ class MapHelper(private val activity: Activity) :
             GoogleMap.OnMapClickListener,
             GoogleMap.OnPolylineClickListener,
             ClusterManager.OnClusterItemClickListener<FriendItem>,
-            ClusterManager.OnClusterItemInfoWindowClickListener<FriendItem> {
+            ClusterManager.OnClusterItemInfoWindowClickListener<FriendItem>,
+            OnCompleteListener<Void> {
 
     private lateinit var googleMap: GoogleMap
     private lateinit var myMarker: Marker
     private lateinit var clusterManager: ClusterManager<FriendItem>
+    private lateinit var geofencingClient: GeofencingClient
+    private lateinit var geofencePendingIntent: PendingIntent
 
     private var friendsItems = HashMap<String,FriendItem>()
     private var polylines = ArrayList<Polyline>()
+    private var geofenceList = ArrayList<Geofence>()
+    private var geofenceMap = HashMap<String,Geofence>()
 
     private var zoomLevel = 11f
-    private val locationUpdateInterval: Long = 10000
-    private val fastestLocationUpdateInterval: Long = locationUpdateInterval / 2
     private val coordinateFormat = "#0.000000"
+    private val geofenceRadius = 100f // в метрах
+    private val geofenceExpiration = (10 * 60 * 1000).toLong() // в миллисекундах
+
+
+    fun init() {
+        geofencingClient = LocationServices.getGeofencingClient(activity)
+    }
 
     // Карта
 
@@ -111,6 +127,7 @@ class MapHelper(private val activity: Activity) :
             if( friendsItems.containsKey(id) ) this.removeFriendMarker(id)
             val photoBitmap = ImageHelper(activity).loadBitmapFromName(photoHash)
             this.addFriendMarker(id, name, position, lastUpdate, photoBitmap, photoHash)
+            this.addGeofence(id, name, position)
         }
     }
 
@@ -210,13 +227,17 @@ class MapHelper(private val activity: Activity) :
     }
 
     fun zoomIn() {
-        zoomLevel++
-        googleMap.animateCamera(CameraUpdateFactory.zoomIn())
+        if( ::googleMap.isInitialized ) {
+            zoomLevel++
+            googleMap.animateCamera(CameraUpdateFactory.zoomIn())
+        }
     }
 
     fun zoomOut() {
-        zoomLevel--
-        googleMap.animateCamera(CameraUpdateFactory.zoomOut())
+        if( ::googleMap.isInitialized ) {
+            zoomLevel--
+            googleMap.animateCamera(CameraUpdateFactory.zoomOut())
+        }
     }
 
     private fun boundCamera( points: List<LatLng> ) {
@@ -226,16 +247,6 @@ class MapHelper(private val activity: Activity) :
         }
         val lineBounds = builder.build()
         googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(lineBounds, 0))
-    }
-
-    // Мое местоположение
-
-    fun createLocationRequest() : LocationRequest {
-        return LocationRequest().apply {
-            interval = locationUpdateInterval
-            fastestInterval = fastestLocationUpdateInterval
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        }
     }
 
     // История перемещений
@@ -293,6 +304,62 @@ class MapHelper(private val activity: Activity) :
 
         UserHelper(activity).loadLocationHistory(userId, successCallback)
         return false
+    }
+
+    // Geofencing
+
+    @SuppressLint("MissingPermission")
+    private fun addGeofence( id: String, name: String, position: LatLng ) {
+        this.removeGeofence(id, name)
+        val geofence = this.geofenceBuilder("$id:$name", position)
+        geofenceList.add(geofence)
+        geofenceMap[id] = geofence
+        geofencingClient.addGeofences(this.getGeofencingRequest(), this.getGeofencePendingIntent()).addOnCompleteListener(this)
+    }
+
+    private fun removeGeofence( id: String, name: String ) {
+        if( geofenceMap.containsKey(id) ) {
+            geofenceList.remove(geofenceMap[id])
+            geofenceMap.remove(id)
+            geofencingClient.removeGeofences(listOf("$id:$name")).addOnCompleteListener(this)
+        }
+    }
+
+    private fun geofenceBuilder( id: String, position: LatLng ) : Geofence {
+        return Geofence.Builder()
+                .setRequestId(id)
+                .setCircularRegion(
+                        position.latitude,
+                        position.longitude,
+                        geofenceRadius
+                )
+                .setExpirationDuration(geofenceExpiration)
+                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
+                .build()
+    }
+
+    private fun getGeofencingRequest(): GeofencingRequest {
+        return GeofencingRequest.Builder().apply {
+            setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+            addGeofences(geofenceList)
+        }.build()
+    }
+
+    private fun getGeofencePendingIntent(): PendingIntent {
+        if( ::geofencePendingIntent.isInitialized ) {
+            return geofencePendingIntent
+        }
+        val intent = Intent(activity, GeofenceTransitionsIntentService::class.java)
+        geofencePendingIntent = PendingIntent.getService(activity, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        return geofencePendingIntent
+    }
+
+    override fun onComplete( task: Task<Void> ) {
+        if (task.isSuccessful) {
+        } else {
+            val message = task.exception.toString()
+            activity.toast( message )
+        }
     }
 
 }

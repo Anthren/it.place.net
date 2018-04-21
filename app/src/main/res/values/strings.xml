@@ -47,4 +47,11 @@
     <string name="days">%s дн.</string>
     <string name="hours">%s ч.</string>
     <string name="minutes">%s мин.</string>
+
+    <string name="geofence_not_available">Geofence service is not available now</string>
+    <string name="geofence_too_many_geofences">Your app has registered too many geofences</string>
+    <string name="geofence_too_many_pending_intents">You have provided too many PendingIntents to the addGeofences() call</string>
+    <string name="geofence_error">the Geofence service is not available now</string>
+    <string name="geofence_transition_entered">сейчас рядом с Вами!</string>
+    <string name="geofence_transition_notification_text">Нажмите на уведомление, чтобы вернуться к приложению</string>
 </resources>
