@@ -1,5 +1,6 @@
 package yuyu.itplacenet.utils
 
+import android.support.v4.app.Fragment
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -15,6 +16,11 @@ import java.text.DecimalFormat
 @JvmOverloads
 fun Context.toast(message: CharSequence, duration: Int = Toast.LENGTH_LONG) =
         Toast.makeText(this.applicationContext, message, duration).show()
+
+@JvmOverloads
+fun Fragment.toast(message: CharSequence) {
+    Toast.makeText(this.activity, message, Toast.LENGTH_LONG).show()
+}
 
 fun Context.getSize(id: Int) : Int =
         this.resources.getDimensionPixelSize(id)

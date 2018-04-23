@@ -31,6 +31,11 @@
         <item name="android:lineSpacingExtra">@dimen/small_text_size</item>
     </style>
 
+    <style name="Text.Large">
+        <item name="android:textSize">@dimen/extra_large_text_size</item>
+        <item name="android:lineSpacingExtra">0sp</item>
+    </style>
+
     <style name="Text.Bold">
         <item name="android:textStyle">bold</item>
     </style>
@@ -92,6 +97,19 @@
     <style name="Label" parent="Text">
         <item name="android:textSize">@dimen/small_text_size</item>
         <item name="android:lineSpacingExtra">4sp</item>
+    </style>
+
+    <style name="Divider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:background">?android:attr/listDivider</item>
+    </style>
+
+    <style name="Link" parent="Text.Small">
+        <item name="android:paddingTop">@dimen/small_margin</item>
+        <item name="android:paddingBottom">@dimen/small_margin</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
     </style>
 
 </resources>

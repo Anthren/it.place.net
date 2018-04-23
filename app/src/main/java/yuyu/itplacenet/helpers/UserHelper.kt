@@ -36,6 +36,15 @@ class UserHelper(
             }
         }
 
+    val isLogin: Boolean
+        get() = auth.isLogin
+
+    /* Вход / выход */
+
+    fun logOut() {
+        auth.logOut()
+    }
+
     /* Сообщения */
 
     private fun msg( text: String ) {
@@ -164,7 +173,7 @@ class UserHelper(
         }
     }
 
-    fun loadDefaultPhoto() : Bitmap {
+    private fun loadDefaultPhoto() : Bitmap {
         return imageHelper.loadFromRes(R.drawable.no_photo)
     }
 
@@ -318,7 +327,9 @@ class UserHelper(
     }
 
     fun stopFriendsPositionListener() {
-        friendsListener.remove()
+        if( ::friendsListener.isInitialized ) {
+            friendsListener.remove()
+        }
     }
 
 }

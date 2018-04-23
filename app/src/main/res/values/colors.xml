@@ -5,5 +5,7 @@
     <color name="colorAccent">#ff5c47</color>
     <color name="colorContrast">#ffffff</color>
     <color name="buttonOk">#7bcb57</color>
+    <color name="toolbar">#6db94b</color>
     <color name="colorLight">#a0a0a0</color>
+    <color name="colorNavIcon">#c6c6c9</color>
 </resources>

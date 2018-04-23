@@ -3,6 +3,14 @@
     <string name="title_activity_login">Авторизация</string>
     <string name="title_activity_profile_edit">Редактировать профиль</string>
 
+    <string name="navigation_drawer_open">Открыть навигационную панель</string>
+    <string name="navigation_drawer_close">Закрыть навигационную панель</string>
+
+    <string name="navigation_item_map">Карта</string>
+    <string name="navigation_item_dialog">Диалоги</string>
+    <string name="navigation_item_login">Вход</string>
+    <string name="navigation_item_logout">Выход</string>
+
     <string name="string_hello">Hello %s!</string>
     <string name="action_profile_edit">Редактировать профиль</string>
 
@@ -20,6 +28,7 @@
     <string name="error_incorrect_password">Неверный пароль</string>
     <string name="error_field_required">Поле обязательно для заполнения</string>
     <string name="error_sign_in_failed">Ошибка входа</string>
+    <string name="success_sign_in">Вы успешно вошли в систему</string>
 
     <!-- Strings related to profile -->
     <string name="group_title_person">Личные данные</string>

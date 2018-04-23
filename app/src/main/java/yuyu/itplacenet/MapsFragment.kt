@@ -3,14 +3,15 @@ package yuyu.itplacenet
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+import android.support.v4.app.Fragment
+import android.view.ViewGroup
+import android.view.LayoutInflater
+import android.view.View
+import android.widget.ImageButton
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-
 import com.google.android.gms.maps.model.LatLng
-
-import kotlinx.android.synthetic.main.activity_maps.*
 import yuyu.itplacenet.helpers.LocationHelper
 import yuyu.itplacenet.helpers.MapHelper
 import yuyu.itplacenet.helpers.PermissionHelper
@@ -18,39 +19,50 @@ import yuyu.itplacenet.helpers.UserHelper
 import yuyu.itplacenet.utils.*
 
 
-class MapsActivity : AppCompatActivity(),
+class MapsFragment : Fragment(),
         OnMapReadyCallback {
 
-    private val mapHelper = MapHelper(this)
-    private val locationHelper = LocationHelper(this)
-    private val permissionHelper = PermissionHelper(this)
-    private val userHelper = UserHelper(this, true)
+    private lateinit var mapHelper: MapHelper
+    private lateinit var locationHelper: LocationHelper
+    private lateinit var permissionHelper: PermissionHelper
+    private lateinit var userHelper: UserHelper
 
     private lateinit var mapFragment: SupportMapFragment
 
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_maps)
+    override fun onCreateView(inflater: LayoutInflater,
+                              container: ViewGroup?,
+                              savedInstanceState: Bundle?): View? {
+        val activity = activity
+        if (isAdded && activity != null) {
+            val rootView = inflater.inflate(R.layout.fragment_maps, container, false)
 
-        mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(this)
+            mapHelper = MapHelper(this.requireActivity())
+            locationHelper = LocationHelper(this.requireActivity())
+            permissionHelper = PermissionHelper(this.requireActivity())
+            userHelper = UserHelper(this.requireActivity(), true)
 
-        mapHelper.init()
-        locationHelper.init({ location: Location -> updateMyLocation(location) })
+            mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+            mapFragment.getMapAsync(this)
 
-        plus.setOnClickListener {
-            mapHelper.zoomIn()
+            mapHelper.init()
+            locationHelper.init({ location: Location -> updateMyLocation(location) })
+
+            rootView.findViewById<ImageButton>(R.id.plus).setOnClickListener {
+                mapHelper.zoomIn()
+            }
+            rootView.findViewById<ImageButton>(R.id.minus).setOnClickListener {
+                mapHelper.zoomOut()
+            }
+            rootView.findViewById<ImageButton>(R.id.location).setOnClickListener {
+                startLocationUpdates()
+            }
+            return rootView
         }
-        minus.setOnClickListener {
-            mapHelper.zoomOut()
-        }
-        location.setOnClickListener {
-            startLocationUpdates()
-        }
+        return null
     }
 
-    public override fun onStart() {
+    override fun onStart() {
         super.onStart()
         locationHelper.connect()
     }

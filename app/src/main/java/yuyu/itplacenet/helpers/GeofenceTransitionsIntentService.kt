@@ -18,9 +18,8 @@ import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofenceStatusCodes
 import com.google.android.gms.location.GeofencingEvent
 
-import yuyu.itplacenet.MapsActivity
+import yuyu.itplacenet.MainActivity
 import yuyu.itplacenet.R
-import yuyu.itplacenet.utils.toast
 
 
 /**
@@ -78,7 +77,7 @@ class GeofenceTransitionsIntentService :
 
     @TargetApi(Build.VERSION_CODES.O)
     private fun sendNotification(notificationDetails: String) {
-        //MapsActivity().toast(notificationDetails)
+        //MainActivity().toast(notificationDetails)
         // Get an instance of the Notification manager
         val mNotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -92,13 +91,13 @@ class GeofenceTransitionsIntentService :
         }
 
         // Create an explicit content Intent that starts the main Activity.
-        val notificationIntent = Intent(applicationContext, MapsActivity::class.java)
+        val notificationIntent = Intent(applicationContext, MainActivity::class.java)
 
         // Construct a task stack.
         val stackBuilder = TaskStackBuilder.create(this)
 
         // Add the main Activity to the task stack as the parent.
-        stackBuilder.addParentStack(MapsActivity::class.java)
+        stackBuilder.addParentStack(MainActivity::class.java)
 
         // Push the content Intent onto the stack.
         stackBuilder.addNextIntent(notificationIntent)

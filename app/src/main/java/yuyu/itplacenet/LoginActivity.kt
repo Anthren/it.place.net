@@ -111,15 +111,12 @@ class LoginActivity : AppCompatActivity() {
         if (requestCode == RC_SIGN_IN) {
             if (resultCode == RESULT_OK) {
                 userHelper.addUserIfNotExist(auth.user)
-                gotoMain()
+                setResult(RESULT_OK, Intent())
+                finish()
             } else {
                 toast(getString(R.string.error_sign_in_failed))
             }
         }
-    }
-
-    private fun gotoMain() {
-        startActivity( Intent(this, MainActivity::class.java) )
     }
 
 }
