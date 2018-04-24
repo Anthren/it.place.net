@@ -63,4 +63,6 @@
     <string name="geofence_error">the Geofence service is not available now</string>
     <string name="geofence_transition_entered">сейчас рядом с Вами!</string>
     <string name="geofence_transition_notification_text">Нажмите на уведомление, чтобы вернуться к приложению</string>
+
+
 </resources>

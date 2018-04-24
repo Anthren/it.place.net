@@ -1,0 +1,112 @@
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@id/dialogRootLayout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <RelativeLayout
+        android:id="@id/dialogContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground">
+
+        <com.makeramen.roundedimageview.RoundedImageView
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@id/dialogAvatar"
+            android:layout_width="@dimen/dialog_avatar_width"
+            android:layout_height="@dimen/dialog_avatar_height"
+            android:layout_marginStart="@dimen/dialog_avatar_margin_horizontal"
+            android:layout_marginEnd="@dimen/dialog_avatar_margin_horizontal"
+            android:layout_marginTop="@dimen/dialog_avatar_margin_vertical"
+            android:layout_marginBottom="@dimen/dialog_avatar_margin_vertical"
+            android:background="@drawable/no_photo"
+            android:scaleType="centerCrop"
+            app:riv_corner_radius="30dip"
+            app:riv_mutate_background="true"
+            app:riv_oval="true" />
+
+        <TextView
+            android:id="@id/dialogName"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dialog_name_height"
+            android:layout_marginEnd="@dimen/dialog_name_margin_horizontal"
+            android:layout_marginTop="@dimen/dialog_name_margin_vertical"
+            android:layout_toEndOf="@id/dialogAvatar"
+            android:layout_toStartOf="@id/dialogDate"
+            android:lineSpacingExtra="16sp"
+            android:maxLines="1"
+            android:gravity="bottom"
+            tools:text="Header"
+            />
+
+        <TextView
+            android:id="@id/dialogDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="@dimen/dialog_date_margin_horizontal"
+            android:layout_marginTop="@dimen/dialog_date_margin_vertical"
+            android:ellipsize="end"
+            android:maxLines="1"
+            tools:text="13:18"
+            />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/dialogName"
+            android:layout_marginEnd="@dimen/dialog_name_margin_horizontal"
+            android:layout_toEndOf="@id/dialogAvatar"
+            android:layout_toStartOf="@+id/dialogUnreadBubble">
+
+            <com.stfalcon.chatkit.utils.ShapeImageView
+                android:id="@id/dialogLastMessageUserAvatar"
+                android:layout_width="@dimen/dialog_last_message_user_avatar_width"
+                android:layout_height="@dimen/dialog_last_message_user_avatar_height"
+                android:layout_marginEnd="@dimen/dialog_last_message_user_avatar_margin_horizontal"
+                />
+
+            <TextView
+                android:id="@id/dialogLastMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_toEndOf="@id/dialogLastMessageUserAvatar"
+                android:ellipsize="end"
+                android:gravity="top"
+                android:maxLines="1"
+                tools:text="Hello!"
+                />
+        </RelativeLayout>
+
+        <ImageView
+            android:id="@+id/onlineIndicator"
+            android:layout_width="@dimen/dialog_online_indicator_width"
+            android:layout_height="@dimen/dialog_online_indicator_height"
+            android:layout_alignTop="@id/dialogAvatar"
+            android:layout_alignStart="@id/dialogAvatar"
+            android:layout_marginTop="@dimen/dialog_online_indicator_margin_vertical"
+            android:layout_marginStart="@dimen/dialog_online_indicator_margin_horizontal"
+            android:background="@drawable/shape_bubble_online"
+            />
+
+        <TextView
+            android:id="@id/dialogUnreadBubble"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@id/dialogDate"
+            android:layout_marginEnd="@dimen/dialog_unread_bubble_margin_horizontal"
+            android:layout_marginTop="@dimen/dialog_unread_bubble_margin_vertical"
+            android:background="@drawable/bubble_circle"
+            android:ellipsize="end"
+            android:fontFamily="@string/font_fontFamily_medium"
+            android:gravity="center"
+            android:lines="1"
+            tools:text="4"
+            />
+
+    </RelativeLayout>
+
+</FrameLayout>

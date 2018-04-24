@@ -143,7 +143,7 @@ class MainActivity : AppCompatActivity(),
                 MapsFragment::class.java
             }
             R.id.nav_dialog -> {
-                MapsFragment::class.java
+                DialogsFragment::class.java
             }
             else -> {
                 MapsFragment::class.java

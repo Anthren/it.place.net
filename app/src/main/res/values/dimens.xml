@@ -13,6 +13,7 @@
     <dimen name="large_text_size">16sp</dimen>
     <dimen name="small_text_size">12sp</dimen>
     <dimen name="extra_large_text_size">24sp</dimen>
+    <dimen name="extra_small_text_size">10sp</dimen>
 
     <dimen name="login_image_bg_width">280dp</dimen>
     <dimen name="login_image_bg_height">200dp</dimen>
@@ -35,4 +36,24 @@
     <dimen name="map_marker_width">28dp</dimen>
     <dimen name="map_marker_height">40dp</dimen>
     <dimen name="map_marker_anchor_v">30dp</dimen>
+
+    <dimen name="dialog_avatar_width">42dp</dimen>
+    <dimen name="dialog_avatar_height">42dp</dimen>
+    <dimen name="dialog_avatar_margin_horizontal">16dp</dimen>
+    <dimen name="dialog_avatar_margin_vertical">11dp</dimen>
+    <dimen name="dialog_name_height">24dp</dimen>
+    <dimen name="dialog_name_margin_horizontal">16dp</dimen>
+    <dimen name="dialog_name_margin_vertical">8dp</dimen>
+    <dimen name="dialog_date_margin_horizontal">16dp</dimen>
+    <dimen name="dialog_date_margin_vertical">16dp</dimen>
+    <dimen name="dialog_last_message_user_avatar_width">24dp</dimen>
+    <dimen name="dialog_last_message_user_avatar_height">24dp</dimen>
+    <dimen name="dialog_last_message_user_avatar_margin_horizontal">7dp</dimen>
+    <dimen name="dialog_online_indicator_width">12dp</dimen>
+    <dimen name="dialog_online_indicator_height">12dp</dimen>
+    <dimen name="dialog_online_indicator_margin_horizontal">31dp</dimen>
+    <dimen name="dialog_online_indicator_margin_vertical">31dp</dimen>
+    <dimen name="dialog_unread_bubble_margin_horizontal">16dp</dimen>
+    <dimen name="dialog_unread_bubble_margin_vertical">2dp</dimen>
+
 </resources>
