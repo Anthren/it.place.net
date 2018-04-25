@@ -7,7 +7,10 @@
     <color name="buttonOk">#7bcb57</color>
     <color name="toolbar">#6db94b</color>
     <color name="colorLight">#a0a0a0</color>
-    <color name="colorNavIcon">#c6c6c9</color>
-    <color name="colorUnreadMessages">#ff9c64</color>
-    <color name="colorDialogDate">#a9a9a9</color>
+    <color name="navigationIcons">#c6c6c9</color>
+    <color name="unreadMessages">#ff9c64</color>
+    <color name="dialogDate">#a9a9a9</color>
+    <color name="divider">#e0e0e0</color>
+    <color name="incomingMessage">#f3f6f7</color>
+    <color name="outcomingMessage">#e4f9ff</color>
 </resources>

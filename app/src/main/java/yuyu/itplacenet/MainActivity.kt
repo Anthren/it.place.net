@@ -21,10 +21,12 @@ import yuyu.itplacenet.helpers.ImageHelper
 import yuyu.itplacenet.helpers.UserHelper
 import yuyu.itplacenet.models.User
 import yuyu.itplacenet.utils.*
+import yuyu.itplacenet.models.Dialog
 
 
 class MainActivity : AppCompatActivity(),
-        NavigationView.OnNavigationItemSelectedListener {
+        NavigationView.OnNavigationItemSelectedListener,
+        DialogsFragment.OnDialogSelectListener {
 
     private val userHelper = UserHelper(this)
     private val imageHelper = ImageHelper(this)
@@ -47,7 +49,7 @@ class MainActivity : AppCompatActivity(),
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
 
-        navigationView = findViewById<NavigationView>(R.id.nav_view)
+        navigationView = findViewById(R.id.nav_view)
         headerLayout = navigationView.getHeaderView(0)
         headerImage = headerLayout.findViewById<ImageButton>(R.id.nav_header_bg)
 
@@ -118,7 +120,15 @@ class MainActivity : AppCompatActivity(),
         if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
             closeDrawer()
         } else {
-            super.onBackPressed()
+            val fm = supportFragmentManager
+            val count = fm.backStackEntryCount
+            if (count <= 1) {
+                finish()
+            } else {
+                super.onBackPressed()
+                //fm.popBackStack()
+                //title = fm.getBackStackEntryAt(count - 2).name
+            }
         }
     }
 
@@ -156,7 +166,10 @@ class MainActivity : AppCompatActivity(),
             e.printStackTrace()
         }
 
-        supportFragmentManager.beginTransaction().replace(R.id.container, fragment).commit()
+        supportFragmentManager.beginTransaction()
+                .replace(R.id.container, fragment)
+                .addToBackStack(fragmentClass.name)
+                .commit()
         item.isChecked = true
         title = item.title
     }
@@ -186,5 +199,22 @@ class MainActivity : AppCompatActivity(),
     private fun setUserPhotoToView(photoBitmap: Bitmap, showBlurBg: Boolean = true) {
         nav_header_photo.setImageBitmap(photoBitmap)
         if( showBlurBg ) nav_header_bg.setImageBitmap(imageHelper.blurImage(photoBitmap))
+    }
+
+    /* Диалоги */
+
+    override fun onDialogSelect(dialog: Dialog) {
+        val fragmentClass = MessagesFragment::class.java
+        val fragment = fragmentClass.newInstance() as Fragment
+
+        val bundle = Bundle()
+        bundle.putString("id", dialog.id)
+        fragment.arguments = bundle
+
+        supportFragmentManager.beginTransaction()
+                .replace(R.id.container, fragment)
+                .addToBackStack(fragmentClass.name)
+                .commit()
+        title = dialog.dialogName
     }
 }

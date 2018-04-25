@@ -1,0 +1,68 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <com.stfalcon.chatkit.messages.MessagesList
+        android:id="@+id/messagesList"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/input"
+        app:dateHeaderTextSize="@dimen/small_text_size"
+        app:incomingAvatarHeight="@dimen/message_avatar_height"
+        app:incomingAvatarWidth="@dimen/message_avatar_width"
+        app:incomingBubbleDrawable="@drawable/bubble_incoming_message"
+        app:incomingBubblePaddingTop="@dimen/message_text_margin_vertical"
+        app:incomingBubblePaddingBottom="@dimen/message_text_margin_vertical"
+        app:incomingBubblePaddingLeft="@dimen/message_text_margin_start"
+        app:incomingBubblePaddingRight="@dimen/message_text_margin_end"
+        app:incomingImageOverlayDrawable="@drawable/bubble_incoming_message"
+        app:incomingTextColor="@color/colorPrimary"
+        app:incomingTextSize="@dimen/primary_text_size"
+        app:incomingTimeTextColor="@color/dialogDate"
+        app:incomingTimeTextSize="@dimen/small_text_size"
+        app:incomingImageTimeTextColor="@color/dialogDate"
+        app:incomingImageTimeTextSize="@dimen/small_text_size"
+        app:outcomingBubbleDrawable="@drawable/bubble_outcoming_message"
+        app:outcomingBubblePaddingTop="@dimen/message_text_margin_vertical"
+        app:outcomingBubblePaddingBottom="@dimen/message_text_margin_vertical"
+        app:outcomingBubblePaddingLeft="@dimen/message_text_margin_end"
+        app:outcomingBubblePaddingRight="@dimen/message_text_margin_start"
+        app:outcomingImageOverlayDrawable="@drawable/bubble_outcoming_message"
+        app:outcomingTextColor="@color/colorPrimary"
+        app:outcomingTextSize="@dimen/primary_text_size"
+        app:outcomingTimeTextColor="@color/dialogDate"
+        app:outcomingTimeTextSize="@dimen/small_text_size"
+        app:outcomingImageTimeTextColor="@color/dialogDate"
+        app:outcomingImageTimeTextSize="@dimen/small_text_size"
+        />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_above="@id/input"
+        android:background="@color/divider"
+        />
+
+    <com.stfalcon.chatkit.messages.MessageInput
+        android:id="@+id/input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        app:attachmentButtonIcon="@drawable/photo"
+        app:attachmentButtonBackground="@color/transparent"
+        app:attachmentButtonHeight="@dimen/message_input_button_height"
+        app:attachmentButtonWidth="@dimen/message_input_button_width"
+        app:inputButtonHeight="@dimen/message_input_button_height"
+        app:inputButtonWidth="@dimen/message_input_button_width"
+        app:inputButtonIcon="@drawable/send"
+        app:inputButtonBackground="@color/transparent"
+        app:inputTextColor="@color/colorPrimary"
+        app:inputTextSize="@dimen/large_text_size"
+        app:inputHint="@string/hint_enter_a_message"
+        app:showAttachmentButton="true"
+        />
+
+</RelativeLayout>

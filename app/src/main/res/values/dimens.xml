@@ -56,4 +56,24 @@
     <dimen name="dialog_unread_bubble_margin_horizontal">16dp</dimen>
     <dimen name="dialog_unread_bubble_margin_vertical">2dp</dimen>
 
+    <dimen name="message_avatar_width">32dp</dimen>
+    <dimen name="message_avatar_height">32dp</dimen>
+    <dimen name="message_avatar_margin_horizontal">12dp</dimen>
+    <dimen name="message_avatar_margin_vertical">12dp</dimen>
+    <dimen name="message_online_indicator_width">9dp</dimen>
+    <dimen name="message_online_indicator_height">9dp</dimen>
+    <dimen name="message_online_indicator_margin_horizontal">24dp</dimen>
+    <dimen name="message_online_indicator_margin_vertical">24dp</dimen>
+    <dimen name="message_incoming_bubble_margin_left">10dp</dimen>
+    <dimen name="message_incoming_bubble_margin_right">68dp</dimen>
+    <dimen name="message_incoming_bubble_margin_vertical">8dp</dimen>
+    <dimen name="message_outcoming_bubble_margin_left">68dp</dimen>
+    <dimen name="message_outcoming_bubble_margin_right">16dp</dimen>
+    <dimen name="message_outcoming_bubble_margin_vertical">8dp</dimen>
+    <dimen name="message_input_button_width">32dp</dimen>
+    <dimen name="message_input_button_height">32dp</dimen>
+    <dimen name="message_text_margin_start">18dp</dimen>
+    <dimen name="message_text_margin_end">8dp</dimen>
+    <dimen name="message_text_margin_vertical">8dp</dimen>
+
 </resources>

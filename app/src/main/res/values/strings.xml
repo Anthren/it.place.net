@@ -11,7 +11,6 @@
     <string name="navigation_item_login">Вход</string>
     <string name="navigation_item_logout">Выход</string>
 
-    <string name="string_hello">Hello %s!</string>
     <string name="action_profile_edit">Редактировать профиль</string>
 
     <!-- Strings related to login -->
@@ -64,5 +63,18 @@
     <string name="geofence_transition_entered">сейчас рядом с Вами!</string>
     <string name="geofence_transition_notification_text">Нажмите на уведомление, чтобы вернуться к приложению</string>
 
+    <!-- Strings related to dialogs -->
+    <string name="hint_enter_a_message">Cообщение…</string>
+    <string name="action_delete">Удалить</string>
+    <string name="action_copy">Копировать</string>
+    <string name="copied_message">Сообщение скопировано</string>
+
+    <string name="date_header_today">Сегодня</string>
+    <string name="date_header_yesterday">Вчера</string>
+
+    <string-array name="view_types_dialog">
+        <item name="image">Изображение</item>
+        <item name="voice">Голосовое сообщение</item>
+    </string-array>
 
 </resources>

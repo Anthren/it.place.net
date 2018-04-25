@@ -1,5 +1,6 @@
 package yuyu.itplacenet
 
+import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
@@ -19,15 +20,24 @@ class DialogsFragment : Fragment(),
         DialogsListAdapter.OnDialogClickListener<Dialog>,
         DialogsListAdapter.OnDialogLongClickListener<Dialog> {
 
+    private lateinit var imageLoader: ImageLoader
     private lateinit var dialogsAdapter: DialogsListAdapter<Dialog>
     private lateinit var dialogsListView: DialogsList
+
+    private var listener: OnDialogSelectListener? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        imageLoader = ImageLoader { imageView, url -> Picasso.get().load(url).into(imageView) }
+    }
 
     override fun onCreateView(inflater: LayoutInflater,
                               container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
 
         val rootView = inflater.inflate(R.layout.fragment_dialogs, container, false)
-        dialogsListView = rootView.findViewById<DialogsList>(R.id.dialogsList)
+        dialogsListView = rootView.findViewById(R.id.dialogsList)
 
         initAdapter()
 
@@ -35,11 +45,7 @@ class DialogsFragment : Fragment(),
     }
 
     private fun initAdapter() {
-        val imageLoader = ImageLoader { imageView, url ->
-            Picasso.get().load(url).into(imageView)
-        }
-
-        dialogsAdapter = DialogsListAdapter<Dialog>(R.layout.item_dialog,imageLoader)
+        dialogsAdapter = DialogsListAdapter(R.layout.item_dialog, imageLoader)
         dialogsAdapter.setItems(DialogsFixtures.getDialogs())
 
         dialogsAdapter.setOnDialogClickListener(this)
@@ -48,8 +54,19 @@ class DialogsFragment : Fragment(),
         dialogsListView.setAdapter(dialogsAdapter)
     }
 
-    override fun onDialogClick(dialog: Dialog) {
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if (context is OnDialogSelectListener) {
+            listener = context
+        }
+    }
 
+    interface OnDialogSelectListener {
+        fun onDialogSelect(dialog: Dialog)
+    }
+
+    override fun onDialogClick(dialog: Dialog) {
+        listener?.onDialogSelect(dialog)
     }
 
     override fun onDialogLongClick(dialog: Dialog) {
