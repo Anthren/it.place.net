@@ -3,7 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/itplacenet.iml" filepath="$PROJECT_DIR$/itplacenet.iml" />
+      <module fileurl="file://C:\D\Projects\final_courses\silanteva\app\app.iml" filepath="C:\D\Projects\final_courses\silanteva\app\app.iml" />
+      <module fileurl="file://C:\D\Projects\final_courses\silanteva\itplacenet.iml" filepath="C:\D\Projects\final_courses\silanteva\itplacenet.iml" />
+      <module fileurl="file://$PROJECT_DIR$/silanteva.iml" filepath="$PROJECT_DIR$/silanteva.iml" />
     </modules>
   </component>
 </project>

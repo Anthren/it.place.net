@@ -11,7 +11,8 @@ import yuyu.itplacenet.models.Coordinates
 import yuyu.itplacenet.models.User
 import yuyu.itplacenet.utils.*
 
-
+// TODO У класса слишком много обязанностей, он и с битмапами работает, и с бд и с кучей всего
+// Работу с фотографиями и с местоположением лучше было бы вынести в другое место
 class UserHelper(
         private val context: Context,
         private val silentMode : Boolean = false

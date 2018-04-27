@@ -44,6 +44,8 @@ class FriendMarkerIconBuilder( activity: Activity,
     }
 }
 
+// TODO: Как-то странно, что класс FriendClusterIconBuilder наследуется от FriendMarkerIcon
+// судя по названию, это как будто бы разные сущности
 class FriendClusterIconBuilder( activity: Activity,
                                 private val photos: ArrayList<Bitmap>
 ) : FriendMarkerIcon(activity) {

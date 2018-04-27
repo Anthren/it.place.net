@@ -121,6 +121,7 @@ class ImageHelper(private val context: Context) {
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fOut)
             fOut.close()
         } catch (e: Exception) {
+            // TODO: В продакшене, конечно, так лучше не писать, а использовать логгер
             e.printStackTrace()
         }
 

@@ -17,6 +17,8 @@ class Validator( private val context: Context ) {
         return password.length > 4
     }
 
+    // TODO В принципе эти методы можно сделать одним, а в него передавать сообщение об ошибке и функцию проверки
+    // TODO Ну и лучше как-то разделить валидацию и показ ошибок. Будет больше кода, но меньше связность
     private fun validateUserName(editText: EditText): Boolean {
         var err = false
         var errStr = ""

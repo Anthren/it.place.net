@@ -53,6 +53,7 @@ class ProgressBar() {
                 })
     }
 
+    // TODO: да, можно очень удобная штука
     // можно написать extension-функциию для любого типа вью, например
     //    fun View.show() {
     //        visibility = View.VISIBLE

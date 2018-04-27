@@ -67,6 +67,7 @@ class LoginActivity : AppCompatActivity() {
                         finish()
                     } else {
                         toast("${getString(R.string.error_sign_in_failed)}: ${task.exception}")
+                        // TODO: действительно непонятно, в коллбек уже приходит true вместо false
                         progressBar.hide() // не работает, хз почему
                         hide() // так работает
                     }
